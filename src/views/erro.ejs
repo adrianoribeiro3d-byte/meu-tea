@@ -1,0 +1,7 @@
+<% if (usuario && usuario.termo_versao) { %><%- include('partials/topo') %><% } else { %><%- include('partials/cabeca') %><body><main class="centro"><div class="caixa-login"><% } %>
+<div class="cartao">
+  <h1><%= titulo %></h1>
+  <p class="sub"><%= mensagem %></p>
+  <a class="botao" href="/">Voltar ao início</a>
+</div>
+<% if (usuario && usuario.termo_versao) { %><%- include('partials/rodape') %><% } else { %></div></main></body></html><% } %>

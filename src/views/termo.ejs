@@ -1,0 +1,18 @@
+<%- include('partials/cabeca', { titulo: 'Termo de confidencialidade' }) %>
+<body><main class="centro"><div class="caixa-login" style="max-width:720px">
+<div class="marca"><%- include('partials/logo') %> Meu TEA</div>
+<div class="cartao">
+  <h1>Termo de confidencialidade e responsabilidade</h1>
+  <p class="sub">Versão <%= versaoTermo %> · leia e aceite para continuar</p>
+  <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+  <div class="termo"><%- include('partials/texto-termo') %></div>
+  <form method="post" action="/termo">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label class="check campo"><input type="checkbox" name="aceito" value="sim" required> Eu, <%= usuario.nome %>, li e aceito o termo de confidencialidade.</label>
+    <div class="acoes">
+      <button type="submit" class="primario">Aceitar e continuar</button>
+    </div>
+  </form>
+  <form method="post" action="/sair" style="margin-top:10px"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="link" type="submit">Não aceito — sair</button></form>
+</div>
+</div></main></body></html>

@@ -1,0 +1,119 @@
+<%- include('partials/topo', { titulo: 'Dashboard' }) %>
+<div class="cabecalho">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="sub">Levantamento das crianças neurodivergentes acompanhadas pela Secretaria de Inclusão</p>
+  </div>
+  <div class="acoes">
+    <span class="selo-lgpd" title="Somente dados agregados, sem identificação">● Dados anonimizados</span>
+    <a class="botao" href="/dashboard.csv?<%= new URLSearchParams(filtro).toString() %>">Exportar indicadores (CSV)</a>
+  </div>
+</div>
+
+<form class="filtros cartao" method="get" action="/">
+  <div class="campo"><label for="f-condicao">Condição</label>
+    <select id="f-condicao" name="condicao"><option value="">Todas</option>
+      <% opcoes.condicoes.forEach(function (c) { %><option value="<%= c %>" <%= filtro.condicao === c ? 'selected' : '' %>><%= c %></option><% }) %>
+    </select></div>
+  <div class="campo"><label for="f-regiao">Bairro / região</label>
+    <select id="f-regiao" name="regiao"><option value="">Todas</option>
+      <% opcoes.regioes.forEach(function (r) { %><option <%= filtro.regiao === r ? 'selected' : '' %>><%= r %></option><% }) %>
+    </select></div>
+  <div class="campo"><label for="f-faixa">Faixa etária</label>
+    <select id="f-faixa" name="faixa"><option value="">Todas</option>
+      <% opcoes.faixas.forEach(function (f) { %><option <%= filtro.faixa === f ? 'selected' : '' %>><%= f %></option><% }) %>
+    </select></div>
+  <div class="campo"><label for="f-sexo">Sexo</label>
+    <select id="f-sexo" name="sexo"><option value="">Todos</option>
+      <% Object.entries(opcoes.sexos).forEach(function ([k, v]) { %><option value="<%= k %>" <%= filtro.sexo === k ? 'selected' : '' %>><%= v %></option><% }) %>
+    </select></div>
+  <div class="acoes"><button type="submit" class="primario">Aplicar</button><a class="botao" href="/">Limpar</a></div>
+</form>
+
+<% if (est.suprimido) { %>
+  <div class="aviso atencao">O filtro selecionado corresponde a menos de <%= est.minGrupo %> crianças. Para proteger a identidade delas (LGPD), os números não são exibidos. Amplie o filtro.</div>
+<% } else if (est.total === 0) { %>
+  <div class="aviso info">Nenhuma criança cadastrada ainda. <% if (pode('importar')) { %><a href="/importar">Importe a planilha da Secretaria</a> para começar.<% } %></div>
+<% } else { const k = est.kpis; const p = (n) => Math.round(n / k.total * 100) + '%'; %>
+
+<div class="grade grade-kpi" style="margin-bottom:16px">
+  <div class="kpi heroi"><div class="rotulo">Crianças cadastradas</div><div class="valor"><%= fmtNum(k.total) %></div><div class="detalhe">idade média <%= String(k.idadeMedia).replace('.', ',') %> anos</div></div>
+  <div class="kpi"><div class="rotulo">Com laudo</div><div class="valor"><%= fmtNum(k.comLaudo) %></div><div class="detalhe"><%= p(k.comLaudo) %> do total · <%= fmtNum(k.emAvaliacao) %> em avaliação</div></div>
+  <div class="kpi"><div class="rotulo">Mais de uma condição</div><div class="valor"><%= fmtNum(k.comorbidade) %></div><div class="detalhe"><%= p(k.comorbidade) %> do total</div></div>
+  <div class="kpi"><div class="rotulo">Atendimentos (30 dias)</div><div class="valor"><%= fmtNum(k.atendimentos30d) %></div><div class="detalhe">todas as especialidades</div></div>
+  <div class="kpi atencao"><div class="rotulo">⚠ Sem acompanhamento há 90+ dias</div><div class="valor"><%= fmtNum(k.semAcompanhamento90) %></div><div class="detalhe"><%= p(k.semAcompanhamento90) %> das crianças</div></div>
+  <div class="kpi atencao"><div class="rotulo">⚠ Consentimento pendente</div><div class="valor"><%= fmtNum(k.semConsentimento) %></div><div class="detalhe">termo do responsável</div></div>
+</div>
+
+<div class="grade grade-2">
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Crianças por condição</h2><span class="muted pequeno">uma criança pode ter mais de uma</span></div>
+    <div class="grafico alto"><canvas id="g-condicao" role="img" aria-label="Gráfico de barras: crianças por condição"></canvas></div>
+    <%- include('partials/tabela-dados', { itens: est.porCondicao, cabecalho: 'Condição' }) %>
+  </section>
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Faixa etária</h2></div>
+    <div class="grafico alto"><canvas id="g-faixa" role="img" aria-label="Gráfico de colunas: crianças por faixa etária"></canvas></div>
+    <%- include('partials/tabela-dados', { itens: est.porFaixa, cabecalho: 'Faixa etária' }) %>
+  </section>
+
+  <section class="cartao span-2">
+    <div class="grafico-cab"><h2>Atendimentos por mês e especialidade</h2><span class="muted pequeno">últimos 12 meses</span></div>
+    <div class="grafico alto"><canvas id="g-mensal" role="img" aria-label="Gráfico de colunas empilhadas: atendimentos por mês e especialidade"></canvas></div>
+    <details class="tabela-dados"><summary>Ver tabela</summary><div class="tabela-wrap"><table>
+      <thead><tr><th>Especialidade</th><% est.atendimentosMensais.meses.forEach(function (m) { %><th class="num"><%= m.slice(5) %>/<%= m.slice(2, 4) %></th><% }) %></tr></thead>
+      <tbody><% est.atendimentosMensais.series.forEach(function (s) { %><tr><td><%= s.rotulo %></td><% s.valores.forEach(function (v) { %><td class="num"><%= v %></td><% }) %></tr><% }) %></tbody>
+    </table></div></details>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Cobertura por especialidade</h2><span class="muted pequeno">% das crianças atendidas em 12 meses</span></div>
+    <% if (!est.cobertura.length) { %><p class="muted">Sem atendimentos registrados no período.</p><% } %>
+    <% est.cobertura.forEach(function (c) { %>
+      <div class="barra-pct"><span><%= c.rotulo %></span><span class="trilho"><i style="width:<%= Math.min(100, c.valor) %>%"></i></span><span class="v"><%= String(c.valor).replace('.', ',') %>%</span></div>
+    <% }) %>
+    <p class="nota">Especialidades com menos de <%= minGrupo %> crianças atendidas não são exibidas.</p>
+  </section>
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Evolução registrada</h2><span class="muted pequeno">últimos 6 meses · <%= fmtNum(est.totalAvaliados) %> avaliações</span></div>
+    <% const icones = { avancou: '▲', manteve: '■', regrediu: '▼' }; const cores = { avancou: 'var(--status-bom)', manteve: 'var(--status-atencao)', regrediu: 'var(--status-critico)' }; %>
+    <% est.evolucao.forEach(function (e) { %>
+      <div class="barra-pct"><span><%= icones[e.chave] %> <%= e.rotulo %></span><span class="trilho"><i style="width:<%= e.pct %>%;background:<%= cores[e.chave] %>"></i></span><span class="v"><%= String(e.pct).replace('.', ',') %>%</span></div>
+    <% }) %>
+    <p class="nota">Percentual dos registros de acompanhamento em que o profissional avaliou a evolução da criança.</p>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Nível de suporte (TEA)</h2></div>
+    <div class="grafico"><canvas id="g-nivel" role="img" aria-label="Gráfico de colunas: nível de suporte das crianças com TEA"></canvas></div>
+    <%- include('partials/tabela-dados', { itens: est.porNivelTea, cabecalho: 'Nível' }) %>
+  </section>
+  <section class="cartao">
+    <% const barras = function (itens) { const t = itens.reduce(function (s, i) { return s + (i.valor || 0); }, 0); return itens.map(function (i) { return { rotulo: i.rotulo, oculto: i.oculto, valor: i.valor, pct: t && i.valor ? Math.round(i.valor / t * 100) : 0 }; }); }; %>
+    <div class="grafico-cab"><h2>Situação do laudo</h2></div>
+    <% barras(est.porLaudo).forEach(function (b) { %>
+      <div class="barra-pct"><span><%= b.rotulo %></span><span class="trilho"><i style="width:<%= b.pct %>%"></i></span><span class="v"><%= b.oculto ? '< ' + minGrupo : fmtNum(b.valor) %></span></div>
+    <% }) %>
+    <div class="grafico-cab" style="margin-top:18px"><h2>Sexo</h2></div>
+    <% barras(est.porSexo).forEach(function (b) { %>
+      <div class="barra-pct"><span><%= b.rotulo %></span><span class="trilho"><i style="width:<%= b.pct %>%"></i></span><span class="v"><%= b.oculto ? '< ' + minGrupo : fmtNum(b.valor) %></span></div>
+    <% }) %>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Por bairro / região</h2></div>
+    <div class="grafico alto"><canvas id="g-regiao" role="img" aria-label="Gráfico de barras: crianças por bairro ou região"></canvas></div>
+    <%- include('partials/tabela-dados', { itens: est.porRegiao, cabecalho: 'Região' }) %>
+  </section>
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Por escola</h2><span class="muted pequeno"><%= fmtNum(k.aee) %> no AEE · <%= fmtNum(k.mediador) %> com mediador</span></div>
+    <div class="grafico alto"><canvas id="g-escola" role="img" aria-label="Gráfico de barras: crianças por escola"></canvas></div>
+    <%- include('partials/tabela-dados', { itens: est.porEscola, cabecalho: 'Escola' }) %>
+  </section>
+</div>
+<p class="nota">Proteção de dados: categorias com menos de <%= minGrupo %> crianças são somadas em “Outros / grupos pequenos” ou exibidas como “&lt; <%= minGrupo %>”.</p>
+<script type="application/json" id="dados-dashboard"><%- JSON.stringify(est).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chart.umd.min.js" defer></script>
+<script src="/js/dashboard.js" defer></script>
+<% } %>
+<%- include('partials/rodape') %>

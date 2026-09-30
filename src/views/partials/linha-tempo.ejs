@@ -1,0 +1,23 @@
+<% if (!registros.length) { %><p class="muted">Nenhum acompanhamento registrado<%= typeof noPeriodo !== 'undefined' && noPeriodo ? ' no período selecionado' : '' %>.</p><% } else { %>
+<ol class="linha-tempo">
+<% registros.forEach(function (a) { %>
+  <li class="<%= a.visivel ? '' : 'sigiloso' %>">
+    <div class="meta">
+      <strong><%= fmtData(a.data) %></strong>
+      <span class="etiqueta azul"><%= ESPECIALIDADES[a.especialidade] || a.especialidade %></span>
+      <span class="etiqueta"><%= TIPOS_ATENDIMENTO[a.tipo] || a.tipo %></span>
+      <% if (a.evolucao !== 'nao_avaliado') { %><span class="etiqueta <%= a.evolucao === 'avancou' ? 'ok' : a.evolucao === 'regrediu' ? 'perigo' : 'alerta' %>"><%= a.evolucao === 'avancou' ? '▲' : a.evolucao === 'regrediu' ? '▼' : '■' %> <%= EVOLUCAO[a.evolucao] %></span><% } %>
+      <% if (a.sigiloso) { %><span class="etiqueta">🔒 sigiloso</span><% } %>
+      <span class="muted">· <%= a.profissional_nome %><%= a.registro_profissional ? ' (' + a.registro_profissional + ')' : '' %></span>
+    </div>
+    <% if (!a.visivel) { %>
+      <p class="muted pequeno">Conteúdo restrito à especialidade <%= ESPECIALIDADES[a.especialidade] %> (sigilo profissional).</p>
+    <% } else { %>
+      <% if (a.objetivos) { %><div class="bloco"><strong>Objetivos</strong><div class="texto"><%= a.objetivos %></div></div><% } %>
+      <div class="bloco"><strong>Descrição / evolução</strong><div class="texto"><%= a.descricao %></div></div>
+      <% if (a.encaminhamentos) { %><div class="bloco"><strong>Encaminhamentos / orientações</strong><div class="texto"><%= a.encaminhamentos %></div></div><% } %>
+    <% } %>
+  </li>
+<% }) %>
+</ol>
+<% } %>

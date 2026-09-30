@@ -1,0 +1,69 @@
+<%- include('partials/topo', { titulo: 'Importar planilha' }) %>
+<div class="cabecalho">
+  <div><h1>Importar planilha</h1><p class="sub">Carregue a planilha de levantamento da Secretaria de Inclusão (.xlsx ou .csv)</p></div>
+  <div class="acoes"><a class="botao" href="/importar/modelo.xlsx">Baixar modelo de planilha</a></div>
+</div>
+<% if (ok) { %><div class="aviso ok">Importação concluída: <%= ok.inseridas %> nova(s), <%= ok.atualizadas %> atualizada(s), <%= ok.ignoradas %> ignorada(s) por erro.</div><% } %>
+<% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+
+<% if (!previa) { %>
+<div class="grade grade-2">
+  <form class="cartao" method="post" action="/importar" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <h2>1. Enviar arquivo</h2>
+    <div class="campo"><label for="planilha">Planilha</label><input type="file" id="planilha" name="planilha" accept=".xlsx,.csv" required></div>
+    <p class="ajuda">Nada é gravado até você conferir a prévia e confirmar. O arquivo é lido em memória e descartado.</p>
+    <button type="submit" class="primario">Pré-visualizar</button>
+  </form>
+  <div class="cartao">
+    <h2>Colunas reconhecidas</h2>
+    <p class="pequeno">O sistema identifica automaticamente os títulos mais comuns, por exemplo: <em>Nome do aluno, Data de nascimento / DN, Sexo, Diagnóstico / Condição, CID, Nível de suporte, Laudo, Escola, Série/Ano, Turno, Bairro, AEE, Mediador, Responsável, Telefone, Consentimento</em>.</p>
+    <p class="pequeno">Várias condições na mesma célula podem ser separadas por vírgula ou ponto e vírgula (ex.: “TEA; TDAH”). Reenviar a planilha <strong>atualiza</strong> os cadastros existentes (mesmo nome + data de nascimento).</p>
+    <div class="aviso atencao pequeno" style="margin:0">A planilha contém dados sensíveis de crianças: após importar, apague as cópias em computadores, e-mails e aplicativos de mensagem.</div>
+  </div>
+</div>
+<% } else { const regs = previa.registros; const n = (a) => regs.filter(function (r) { return r.acao === a; }).length; %>
+<div class="cartao">
+  <h2>2. Conferir prévia — <%= previa.arquivo %></h2>
+  <div class="grade grade-kpi" style="margin-bottom:14px">
+    <div class="kpi"><div class="rotulo">Novos cadastros</div><div class="valor"><%= n('inserir') %></div></div>
+    <div class="kpi"><div class="rotulo">Atualizações</div><div class="valor"><%= n('atualizar') %></div></div>
+    <div class="kpi"><div class="rotulo">Linhas com erro (ignoradas)</div><div class="valor"><%= n('ignorar') %></div></div>
+  </div>
+  <p class="pequeno"><strong>Colunas reconhecidas:</strong> <%= previa.colunasReconhecidas.join(' · ') %></p>
+  <% if (previa.colunasIgnoradas.length) { %><p class="pequeno muted"><strong>Colunas ignoradas:</strong> <%= previa.colunasIgnoradas.join(', ') %></p><% } %>
+  <% if (previa.faltando.length) { %><div class="aviso atencao pequeno">Colunas obrigatórias não encontradas: <%= previa.faltando.join(', ') %>.</div><% } %>
+  <div class="tabela-wrap" style="max-height:480px;overflow:auto"><table>
+    <thead><tr><th class="num">Linha</th><th>Ação</th><th>Nome</th><th>Nascimento</th><th>Condições</th><th>Escola</th><th>Observações da validação</th></tr></thead>
+    <tbody>
+    <% regs.forEach(function (r) { %>
+      <tr>
+        <td class="num"><%= r.linha %></td>
+        <td><span class="etiqueta <%= r.acao === 'inserir' ? 'ok' : r.acao === 'atualizar' ? 'azul' : 'perigo' %>"><%= { inserir: 'novo', atualizar: 'atualizar', ignorar: 'erro' }[r.acao] %></span></td>
+        <td><%= r.dados.nome %></td>
+        <td><%= fmtData(r.dados.nascimento) %></td>
+        <td><%= r.dados.condicoes.map(function (x) { return CONDICAO_CURTA[x] || x; }).join(', ') %></td>
+        <td><%= r.dados.escola || '—' %></td>
+        <td class="pequeno"><% r.erros.forEach(function (e) { %><div style="color:var(--perigo)"><%= e %></div><% }) %><% r.avisos.forEach(function (e) { %><div class="muted"><%= e %></div><% }) %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <form method="post" action="/importar/confirmar" class="acoes" style="margin-top:16px">
+    <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="chave" value="<%= previa.chave %>">
+    <button type="submit" class="primario" <%= n('inserir') + n('atualizar') ? '' : 'disabled' %>>Confirmar importação de <%= n('inserir') + n('atualizar') %> registro(s)</button>
+    <a class="botao" href="/importar">Cancelar</a>
+  </form>
+</div>
+<% } %>
+
+<div class="cartao">
+  <h2>Histórico de importações</h2>
+  <% if (!historico.length) { %><p class="muted">Nenhuma importação realizada.</p><% } else { %>
+  <div class="tabela-wrap"><table>
+    <thead><tr><th>Data</th><th>Arquivo</th><th>Usuário</th><th class="num">Linhas</th><th class="num">Novas</th><th class="num">Atualizadas</th><th class="num">Ignoradas</th></tr></thead>
+    <tbody><% historico.forEach(function (h) { %><tr><td><%= fmtDataHora(h.criado_em) %></td><td><%= h.arquivo %></td><td><%= h.usuario_nome %></td><td class="num"><%= h.total %></td><td class="num"><%= h.inseridas %></td><td class="num"><%= h.atualizadas %></td><td class="num"><%= h.ignoradas %></td></tr><% }) %></tbody>
+  </table></div>
+  <% } %>
+</div>
+<%- include('partials/rodape') %>

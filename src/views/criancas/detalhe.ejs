@@ -1,0 +1,93 @@
+<%- include('../partials/topo', { titulo: c.codigo }) %>
+<div class="cabecalho">
+  <div>
+    <p class="muted pequeno" style="margin:0"><a href="/criancas">← Crianças</a> · <span class="num"><%= c.codigo %></span></p>
+    <h1><%= c.nome %></h1>
+    <p class="sub" style="margin-bottom:6px"><%= c.idade != null ? c.idade + ' anos' : '' %><%= c.escola ? ' · ' + c.escola : '' %><%= c.serie ? ' · ' + c.serie : '' %></p>
+    <div><% c.condicoes.forEach(function (x) { %><span class="etiqueta azul"><%= x %></span> <% }) %>
+      <% if (c.anonimizada) { %><span class="etiqueta">anonimizada</span><% } else if (!c.consentimento) { %><span class="etiqueta alerta">consentimento pendente</span><% } %></div>
+  </div>
+  <div class="acoes">
+    <% if (podeRegistrar) { %><a class="botao primario" href="/criancas/<%= c.id %>/acompanhamentos/novo">Registrar acompanhamento</a><% } %>
+    <a class="botao" href="/criancas/<%= c.id %>/relatorio">Relatório</a>
+    <% if (pode('editarCriancas') && !c.anonimizada) { %><a class="botao" href="/criancas/<%= c.id %>/editar">Editar cadastro</a><% } %>
+  </div>
+</div>
+
+<div class="grade grade-2">
+  <section class="cartao">
+    <h2>Dados do cadastro</h2>
+    <dl class="dados">
+      <div><dt>Data de nascimento</dt><dd><%= fmtData(c.nascimento) %></dd></div>
+      <div><dt>Sexo</dt><dd><%= SEXOS[c.sexo] %></dd></div>
+      <div><dt>CID</dt><dd><%= c.cid || '—' %></dd></div>
+      <div><dt>Nível de suporte</dt><dd><%= NIVEIS_SUPORTE[c.nivel_suporte] %></dd></div>
+      <div><dt>Laudo</dt><dd><%= LAUDO[c.laudo] %></dd></div>
+      <div><dt>Turno</dt><dd><%= TURNOS[c.turno] || '—' %></dd></div>
+      <div><dt>Bairro / região</dt><dd><%= c.regiao || '—' %></dd></div>
+      <div><dt>Apoio escolar</dt><dd><%= [c.aee ? 'AEE' : null, c.mediador ? 'Mediador' : null].filter(Boolean).join(' · ') || '—' %></dd></div>
+      <div><dt>Responsável</dt><dd><%= c.responsavel || '—' %></dd></div>
+      <div><dt>Telefone</dt><dd><%= c.telefone || '—' %></dd></div>
+      <div><dt>Consentimento</dt><dd><%= c.consentimento ? 'Assinado em ' + fmtData(c.consentimento_data) : 'Pendente' %></dd></div>
+    </dl>
+    <% if (c.observacoes) { %><h3 style="margin-top:16px">Observações</h3><p style="white-space:pre-wrap"><%= c.observacoes %></p><% } %>
+  </section>
+
+  <section class="cartao" id="equipe">
+    <h2>Equipe de acompanhamento</h2>
+    <p class="muted pequeno">Somente os profissionais vinculados têm acesso a esta ficha.</p>
+    <% if (!equipe.length) { %><p class="muted">Nenhum profissional vinculado.</p><% } %>
+    <table><tbody>
+    <% equipe.forEach(function (e) { %>
+      <tr><td><strong><%= e.nome %></strong><br><span class="muted pequeno"><%= PERFIS[e.perfil] %><%= e.registro_profissional ? ' · ' + e.registro_profissional : '' %></span></td>
+        <td class="num"><% if (pode('editarCriancas')) { %>
+          <form method="post" action="/criancas/<%= c.id %>/equipe" data-confirmar="Remover o acesso de <%= e.nome %> a esta ficha?">
+            <input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="usuario_id" value="<%= e.id %>"><input type="hidden" name="acao" value="remover">
+            <button class="pequeno" type="submit">Remover</button></form><% } %></td></tr>
+    <% }) %>
+    </tbody></table>
+    <% if (pode('editarCriancas') && !c.anonimizada) { const ids = equipe.map(function (e) { return e.id; }); const disp = profissionais.filter(function (p) { return !ids.includes(p.id); }); %>
+      <% if (disp.length) { %>
+      <form method="post" action="/criancas/<%= c.id %>/equipe" class="filtros" style="margin:14px 0 0">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <div class="campo" style="max-width:none;flex:1 1 240px"><label for="usuario_id">Vincular profissional</label>
+          <select id="usuario_id" name="usuario_id"><% disp.forEach(function (p) { %><option value="<%= p.id %>"><%= p.nome %> — <%= PERFIS[p.perfil] %></option><% }) %></select></div>
+        <button type="submit">Vincular</button>
+      </form>
+      <% } %>
+    <% } %>
+  </section>
+</div>
+
+<section class="cartao" id="historico" style="margin-top:16px">
+  <div class="grafico-cab"><h2>Histórico de acompanhamento</h2><span class="muted pequeno"><%= totalRegistros %> registro(s) no total</span></div>
+  <% if (especialidadesHistorico.length > 1) { %>
+  <div class="acoes" style="margin-bottom:16px">
+    <a class="botao pequeno <%= esp ? '' : 'primario' %>" href="/criancas/<%= c.id %>#historico">Todas</a>
+    <% especialidadesHistorico.forEach(function (e) { %><a class="botao pequeno <%= esp === e ? 'primario' : '' %>" href="/criancas/<%= c.id %>?esp=<%= e %>#historico"><%= ESPECIALIDADES[e] %></a><% }) %>
+  </div>
+  <% } %>
+  <%- include('../partials/linha-tempo', { registros: acompanhamentos }) %>
+  <% if (acompanhamentos.length < totalFiltrado) { %>
+    <p style="margin-top:16px">Exibindo os <%= acompanhamentos.length %> mais recentes de <%= totalFiltrado %>.
+      <a href="/criancas/<%= c.id %>?<%= esp ? 'esp=' + esp + '&' : '' %>todos=1#historico">Mostrar todos</a> ou gere o <a href="/criancas/<%= c.id %>/relatorio">relatório por período</a>.</p>
+  <% } %>
+</section>
+
+<% if (pode('administrar')) { %>
+<section class="cartao" style="margin-top:16px">
+  <h2>Direitos do titular (LGPD)</h2>
+  <p class="muted pequeno">Use somente mediante solicitação formal do responsável legal. As ações ficam registradas na auditoria.</p>
+  <div class="acoes">
+    <a class="botao" href="/criancas/<%= c.id %>/exportar">Exportar dados (portabilidade)</a>
+  </div>
+  <% if (!c.anonimizada) { %>
+  <form method="post" action="/criancas/<%= c.id %>/anonimizar" class="filtros" style="margin:16px 0 0" data-confirmar="Anonimizar é irreversível: nome, contatos e textos dos acompanhamentos serão apagados. Continuar?">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="campo" style="max-width:none;flex:1 1 260px"><label for="confirmacao">Anonimizar cadastro — digite <strong><%= c.codigo %></strong> para confirmar</label><input type="text" id="confirmacao" name="confirmacao" autocomplete="off"></div>
+    <button type="submit" class="perigo">Anonimizar</button>
+  </form>
+  <% } %>
+</section>
+<% } %>
+<%- include('../partials/rodape') %>

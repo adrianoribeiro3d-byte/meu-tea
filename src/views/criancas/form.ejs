@@ -1,0 +1,46 @@
+<%- include('../partials/topo', { titulo: novo ? 'Nova criança' : 'Editar cadastro' }) %>
+<div class="cabecalho"><div>
+  <h1><%= novo ? 'Nova criança' : 'Editar cadastro ' + c.codigo %></h1>
+  <p class="sub">Campos marcados com 🔒 são criptografados no banco de dados.</p>
+</div></div>
+<% if (erros.length) { %><div class="aviso erro" role="alert">Corrija os itens abaixo:<ul><% erros.forEach(function (e) { %><li><%= e %></li><% }) %></ul></div><% } %>
+<form method="post" class="cartao">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <fieldset><legend>Identificação</legend>
+    <div class="grade grade-3">
+      <div class="campo span-2"><label for="nome">🔒 Nome completo *</label><input type="text" id="nome" name="nome" value="<%= c.nome || '' %>" required></div>
+      <div class="campo"><label for="nascimento">🔒 Data de nascimento *</label><input type="date" id="nascimento" name="nascimento" value="<%= c.nascimento || '' %>" required></div>
+      <div class="campo"><label for="sexo">Sexo</label><select id="sexo" name="sexo"><% Object.entries(SEXOS).forEach(function ([k, v]) { %><option value="<%= k %>" <%= c.sexo === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+      <div class="campo"><label for="responsavel">🔒 Responsável legal</label><input type="text" id="responsavel" name="responsavel" value="<%= c.responsavel || '' %>"></div>
+      <div class="campo"><label for="telefone">🔒 Telefone do responsável</label><input type="text" id="telefone" name="telefone" value="<%= c.telefone || '' %>" inputmode="tel"></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Condição e diagnóstico</legend>
+    <div class="campo"><label>Condições * <span class="muted">(marque todas que se aplicam)</span></label>
+      <div class="checks"><% CONDICOES.forEach(function (x) { %><label class="check"><input type="checkbox" name="condicoes" value="<%= x %>" <%= (c.condicoes || []).includes(x) ? 'checked' : '' %>> <%= x %></label><% }) %></div></div>
+    <div class="grade grade-3">
+      <div class="campo"><label for="cid">CID</label><input type="text" id="cid" name="cid" value="<%= c.cid || '' %>" placeholder="ex.: F84.0; F90.0"></div>
+      <div class="campo"><label for="nivel_suporte">Nível de suporte (TEA)</label><select id="nivel_suporte" name="nivel_suporte"><% Object.entries(NIVEIS_SUPORTE).forEach(function ([k, v]) { %><option value="<%= k %>" <%= c.nivel_suporte === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+      <div class="campo"><label for="laudo">Laudo</label><select id="laudo" name="laudo"><% Object.entries(LAUDO).forEach(function ([k, v]) { %><option value="<%= k %>" <%= c.laudo === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Escola e apoio</legend>
+    <div class="grade grade-3">
+      <div class="campo"><label for="escola">Escola</label><input type="text" id="escola" name="escola" value="<%= c.escola || '' %>"></div>
+      <div class="campo"><label for="serie">Série / ano</label><input type="text" id="serie" name="serie" value="<%= c.serie || '' %>"></div>
+      <div class="campo"><label for="turno">Turno</label><select id="turno" name="turno"><option value="">—</option><% Object.entries(TURNOS).forEach(function ([k, v]) { %><option value="<%= k %>" <%= c.turno === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+      <div class="campo"><label for="regiao">Bairro / região</label><input type="text" id="regiao" name="regiao" value="<%= c.regiao || '' %>"></div>
+      <div class="campo"><label>&nbsp;</label><label class="check"><input type="checkbox" name="aee" value="1" <%= c.aee ? 'checked' : '' %>> Frequenta AEE / sala de recursos</label></div>
+      <div class="campo"><label>&nbsp;</label><label class="check"><input type="checkbox" name="mediador" value="1" <%= c.mediador ? 'checked' : '' %>> Possui mediador / profissional de apoio</label></div>
+    </div>
+    <div class="campo"><label for="observacoes">🔒 Observações</label><textarea id="observacoes" name="observacoes"><%= c.observacoes || '' %></textarea></div>
+  </fieldset>
+  <fieldset><legend>Consentimento (LGPD art. 14)</legend>
+    <div class="grade grade-2">
+      <label class="check"><input type="checkbox" name="consentimento" value="1" <%= c.consentimento ? 'checked' : '' %>> O responsável legal assinou o termo de consentimento para tratamento dos dados</label>
+      <div class="campo"><label for="consentimento_data">Data da assinatura</label><input type="date" id="consentimento_data" name="consentimento_data" value="<%= c.consentimento_data || '' %>"></div>
+    </div>
+  </fieldset>
+  <div class="acoes"><button type="submit" class="primario">Salvar</button><a class="botao" href="<%= novo ? '/criancas' : '/criancas/' + c.id %>">Cancelar</a></div>
+</form>
+<%- include('../partials/rodape') %>

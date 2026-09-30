@@ -1,0 +1,16 @@
+<% const completo = !usuario.trocar_senha && usuario.termo_versao; %>
+<% if (completo) { %><%- include('partials/topo', { titulo: 'Alterar senha' }) %><% } else { %><%- include('partials/cabeca', { titulo: 'Alterar senha' }) %><body><main class="centro"><div class="caixa-login"><div class="marca"><%- include('partials/logo') %> Meu TEA</div><% } %>
+<div class="cartao" style="max-width:480px">
+  <h1>Alterar senha</h1>
+  <% if (usuario.trocar_senha) { %><p class="sub">Por segurança, defina uma senha pessoal antes do primeiro acesso.</p><% } %>
+  <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+  <form method="post" action="/conta/senha">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="campo"><label for="atual">Senha atual</label><input type="password" id="atual" name="atual" autocomplete="current-password" required></div>
+    <div class="campo"><label for="nova">Nova senha</label><input type="password" id="nova" name="nova" autocomplete="new-password" minlength="10" required>
+      <div class="ajuda">Mínimo de 10 caracteres, com letras e números. Não reutilize senhas de outros serviços.</div></div>
+    <div class="campo"><label for="confirmacao">Confirme a nova senha</label><input type="password" id="confirmacao" name="confirmacao" autocomplete="new-password" required></div>
+    <button type="submit" class="primario">Salvar senha</button>
+  </form>
+</div>
+<% if (completo) { %><%- include('partials/rodape') %><% } else { %></div></main></body></html><% } %>

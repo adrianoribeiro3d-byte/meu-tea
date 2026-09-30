@@ -1,0 +1,68 @@
+<%- include('../partials/topo', { titulo: 'Relatório ' + c.codigo }) %>
+<div class="marca-dagua">CONFIDENCIAL<br><%= usuario.nome %><br><%= geradoEm.toLocaleDateString('pt-BR') %></div>
+<div class="cabecalho nao-imprimir">
+  <div>
+    <p class="muted pequeno" style="margin:0"><a href="/criancas/<%= c.id %>">← <%= c.nome %></a></p>
+    <h1>Relatório de acompanhamento</h1>
+    <p class="sub">Selecione o período e a especialidade; depois imprima ou salve em PDF.</p>
+  </div>
+  <div class="acoes"><button type="button" class="primario" data-imprimir>Imprimir / salvar PDF</button></div>
+</div>
+
+<form class="filtros cartao nao-imprimir" method="get">
+  <div class="campo"><label for="inicio">De</label><input type="date" id="inicio" name="inicio" value="<%= filtro.inicio %>"></div>
+  <div class="campo"><label for="fim">Até</label><input type="date" id="fim" name="fim" value="<%= filtro.fim %>"></div>
+  <div class="campo"><label for="especialidade">Especialidade</label><select id="especialidade" name="especialidade"><option value="">Todas</option>
+    <% Object.entries(ESPECIALIDADES).forEach(function ([k, v]) { %><option value="<%= k %>" <%= filtro.especialidade === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+  <div class="acoes"><button type="submit">Atualizar</button></div>
+</form>
+
+<article>
+  <div class="cartao">
+    <div class="grafico-cab">
+      <div><div class="marca" style="padding:0 0 6px"><%- include('../partials/logo') %> Meu TEA</div>
+        <h2 style="margin:0">Relatório de acompanhamento multiprofissional</h2></div>
+      <div class="pequeno muted" style="text-align:right">Emitido em <%= geradoEm.toLocaleString('pt-BR') %><br>por <%= usuario.nome %></div>
+    </div>
+    <p class="pequeno muted">Período: <%= filtro.inicio ? fmtData(filtro.inicio) : 'início' %> a <%= filtro.fim ? fmtData(filtro.fim) : 'hoje' %> · Especialidade: <%= filtro.especialidade ? ESPECIALIDADES[filtro.especialidade] : 'todas' %></p>
+    <dl class="dados" style="margin-top:12px">
+      <div><dt>Criança</dt><dd><strong><%= c.nome %></strong></dd></div>
+      <div><dt>Código</dt><dd class="num"><%= c.codigo %></dd></div>
+      <div><dt>Nascimento / idade</dt><dd><%= fmtData(c.nascimento) %><%= c.idade != null ? ' · ' + c.idade + ' anos' : '' %></dd></div>
+      <div><dt>Condições</dt><dd><%= c.condicoes.join(', ') %></dd></div>
+      <div><dt>CID</dt><dd><%= c.cid || '—' %></dd></div>
+      <div><dt>Nível de suporte / laudo</dt><dd><%= NIVEIS_SUPORTE[c.nivel_suporte] %> · <%= LAUDO[c.laudo] %></dd></div>
+      <div><dt>Escola</dt><dd><%= c.escola || '—' %><%= c.serie ? ' · ' + c.serie : '' %><%= c.turno ? ' · ' + TURNOS[c.turno] : '' %></dd></div>
+      <div><dt>Apoio escolar</dt><dd><%= [c.aee ? 'AEE' : null, c.mediador ? 'Mediador' : null].filter(Boolean).join(' · ') || '—' %></dd></div>
+      <div><dt>Responsável</dt><dd><%= c.responsavel || '—' %></dd></div>
+    </dl>
+  </div>
+
+  <div class="cartao">
+    <h2>Resumo por especialidade</h2>
+    <% const esp = Object.entries(resumo); %>
+    <% if (!esp.length) { %><p class="muted">Sem registros no período.</p><% } else { %>
+    <div class="tabela-wrap"><table>
+      <thead><tr><th>Especialidade</th><th class="num">Registros</th><th>Primeiro</th><th>Último</th><th>Evolução registrada</th><th>Profissional(is) na equipe</th></tr></thead>
+      <tbody>
+      <% esp.forEach(function ([k, s]) { const ev = Object.entries(s.evolucao); %>
+        <tr><td><%= ESPECIALIDADES[k] || k %></td><td class="num"><%= s.total %></td><td><%= fmtData(s.primeira) %></td><td><%= fmtData(s.ultima) %></td>
+          <td><%= ev.length ? ev.map(function ([e, n]) { return EVOLUCAO[e] + ': ' + n; }).join(' · ') : '—' %></td>
+          <td><%= equipe.filter(function (e) { return e.perfil === k; }).map(function (e) { return e.nome; }).join(', ') || '—' %></td></tr>
+      <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+  </div>
+
+  <div class="cartao">
+    <h2>Histórico detalhado</h2>
+    <%- include('../partials/linha-tempo', { registros: registros.slice().reverse(), noPeriodo: true }) %>
+  </div>
+
+  <p class="pequeno muted" style="margin-top:16px">
+    Documento confidencial contendo dados pessoais sensíveis de criança (LGPD, arts. 11 e 14). Uso restrito à equipe de acompanhamento e ao responsável legal.
+    Proibida a reprodução ou o compartilhamento fora dessa finalidade. Emissão registrada na trilha de auditoria.
+  </p>
+</article>
+<%- include('../partials/rodape') %>

@@ -1,0 +1,11 @@
+<details class="tabela-dados">
+  <summary>Ver tabela</summary>
+  <div class="tabela-wrap"><table>
+    <thead><tr><th><%= cabecalho || 'Categoria' %></th><th class="num">Crianças</th></tr></thead>
+    <tbody>
+    <% itens.forEach(function (i) { %>
+      <tr><td><%= i.rotulo %></td><td class="num"><%= i.oculto ? '< ' + minGrupo : fmtNum(i.valor) %></td></tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+</details>

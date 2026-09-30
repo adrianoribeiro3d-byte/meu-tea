@@ -1,0 +1,23 @@
+<%- include('../partials/topo', { titulo: 'Registrar acompanhamento' }) %>
+<div class="cabecalho"><div>
+  <p class="muted pequeno" style="margin:0"><a href="/criancas/<%= c.id %>">← <%= c.nome %></a></p>
+  <h1>Registrar acompanhamento</h1>
+  <p class="sub"><%= PERFIS[usuario.perfil] %> · <%= usuario.nome %><%= usuario.registro_profissional ? ' (' + usuario.registro_profissional + ')' : '' %></p>
+</div></div>
+<% if (erros.length) { %><div class="aviso erro" role="alert"><ul><% erros.forEach(function (e) { %><li><%= e %></li><% }) %></ul></div><% } %>
+<form method="post" class="cartao" style="max-width:860px">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <div class="grade grade-3">
+    <div class="campo"><label for="data">Data do atendimento</label><input type="date" id="data" name="data" value="<%= a.data %>" required></div>
+    <div class="campo"><label for="tipo">Tipo</label><select id="tipo" name="tipo"><% Object.entries(TIPOS_ATENDIMENTO).forEach(function ([k, v]) { %><option value="<%= k %>" <%= a.tipo === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+    <div class="campo"><label for="evolucao">Evolução observada</label><select id="evolucao" name="evolucao"><% Object.entries(EVOLUCAO).forEach(function ([k, v]) { %><option value="<%= k %>" <%= a.evolucao === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+  </div>
+  <div class="campo"><label for="objetivos">🔒 Objetivos trabalhados</label><textarea id="objetivos" name="objetivos" style="min-height:80px"><%= a.objetivos || '' %></textarea></div>
+  <div class="campo"><label for="descricao">🔒 Descrição do atendimento / evolução *</label><textarea id="descricao" name="descricao" required style="min-height:160px"><%= a.descricao || '' %></textarea>
+    <div class="ajuda">Registre apenas o necessário para a continuidade do cuidado (princípio da necessidade).</div></div>
+  <div class="campo"><label for="encaminhamentos">🔒 Encaminhamentos e orientações</label><textarea id="encaminhamentos" name="encaminhamentos" style="min-height:80px"><%= a.encaminhamentos || '' %></textarea></div>
+  <label class="check campo"><input type="checkbox" name="sigiloso" value="1" <%= a.sigiloso ? 'checked' : '' %>> <span><strong>Registro sigiloso</strong> — visível apenas para <%= PERFIS[usuario.perfil] %>. Demais profissionais verão somente data e tipo do atendimento.</span></label>
+  <div class="aviso info pequeno">Após salvo, o registro não pode ser alterado nem apagado (integridade do prontuário). Para corrigir, registre uma nova anotação.</div>
+  <div class="acoes"><button type="submit" class="primario">Salvar registro</button><a class="botao" href="/criancas/<%= c.id %>">Cancelar</a></div>
+</form>
+<%- include('../partials/rodape') %>

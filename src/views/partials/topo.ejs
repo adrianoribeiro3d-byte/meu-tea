@@ -1,0 +1,36 @@
+<%- include('cabeca') %>
+<body>
+<div class="topo-mobile">
+  <a href="/" class="marca"><%- include('logo') %> Meu TEA</a>
+  <button type="button" data-abrir-menu aria-label="Abrir menu">Menu</button>
+</div>
+<div class="app">
+  <aside class="lateral" id="menu">
+    <a href="/" class="marca"><%- include('logo') %> Meu TEA</a>
+    <nav>
+      <a href="/" class="<%= caminho === '/' ? 'ativo' : '' %>">Dashboard</a>
+      <% if (pode('verCriancas')) { %>
+        <a href="/criancas" class="<%= caminho.startsWith('/criancas') ? 'ativo' : '' %>"><%= usuario.perfil === 'admin' ? 'Crianças' : 'Minhas crianças' %></a>
+      <% } %>
+      <% if (pode('importar')) { %>
+        <a href="/importar" class="<%= caminho.startsWith('/importar') ? 'ativo' : '' %>">Importar planilha</a>
+      <% } %>
+      <% if (pode('administrar')) { %>
+        <div class="grupo">Administração</div>
+        <a href="/usuarios" class="<%= caminho.startsWith('/usuarios') ? 'ativo' : '' %>">Usuários</a>
+        <a href="/auditoria" class="<%= caminho.startsWith('/auditoria') ? 'ativo' : '' %>">Auditoria (LGPD)</a>
+      <% } %>
+      <div class="grupo">Conta</div>
+      <a href="/conta/senha" class="<%= caminho === '/conta/senha' ? 'ativo' : '' %>">Alterar senha</a>
+      <a href="/privacidade" class="<%= caminho === '/privacidade' ? 'ativo' : '' %>">Privacidade e LGPD</a>
+    </nav>
+    <div class="usuario">
+      <strong><%= usuario.nome %></strong>
+      <span class="muted"><%= PERFIS[usuario.perfil] %></span>
+      <form method="post" action="/sair">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button type="submit" class="pequeno">Sair</button>
+      </form>
+    </div>
+  </aside>
+  <main class="conteudo">

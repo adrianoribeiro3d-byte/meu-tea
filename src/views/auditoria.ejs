@@ -1,0 +1,37 @@
+<%- include('partials/topo', { titulo: 'Auditoria' }) %>
+<div class="cabecalho"><div><h1>Trilha de auditoria</h1><p class="sub">Registro imutável de acessos e operações com dados pessoais (LGPD art. 37)</p></div></div>
+<form class="filtros cartao" method="get">
+  <div class="campo"><label for="usuario">Usuário</label><select id="usuario" name="usuario"><option value="">Todos</option>
+    <% usuarios.forEach(function (u) { %><option value="<%= u.id %>" <%= String(q.usuario) === String(u.id) ? 'selected' : '' %>><%= u.nome %></option><% }) %></select></div>
+  <div class="campo"><label for="acao">Ação</label><select id="acao" name="acao"><option value="">Todas</option>
+    <% acoes.forEach(function (a) { %><option <%= q.acao === a ? 'selected' : '' %>><%= a %></option><% }) %></select></div>
+  <div class="campo"><label for="inicio">De</label><input type="date" id="inicio" name="inicio" value="<%= q.inicio || '' %>"></div>
+  <div class="campo"><label for="fim">Até</label><input type="date" id="fim" name="fim" value="<%= q.fim || '' %>"></div>
+  <div class="acoes"><button class="primario" type="submit">Filtrar</button><a class="botao" href="/auditoria">Limpar</a></div>
+</form>
+<div class="cartao">
+  <p class="muted pequeno"><%= fmtNum(total) %> evento(s)</p>
+  <div class="tabela-wrap"><table>
+    <thead><tr><th>Data/hora (UTC)</th><th>Usuário</th><th>Ação</th><th>Registro</th><th>Detalhes</th><th>IP</th></tr></thead>
+    <tbody>
+    <% registros.forEach(function (r) { %>
+      <tr>
+        <td class="num pequeno" style="white-space:nowrap"><%= fmtDataHora(r.criado_em) %></td>
+        <td><%= r.usuario_nome || '—' %></td>
+        <td><span class="etiqueta <%= /negado|falhou|bloqueado|anonimizou|exportou_dados/.test(r.acao) ? 'alerta' : '' %>"><%= r.acao %></span></td>
+        <td><% if (r.codigo) { %><a href="/auditoria?crianca=<%= r.entidade_id %>"><%= r.codigo %></a><% } else if (r.entidade) { %><%= r.entidade %> #<%= r.entidade_id %><% } else { %>—<% } %></td>
+        <td class="pequeno muted" style="max-width:340px;word-break:break-word"><%= r.detalhes || '' %></td>
+        <td class="pequeno muted"><%= r.ip || '' %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <% if (paginas > 1) { const qs = (n) => new URLSearchParams(Object.assign({}, q, { pagina: n })).toString(); %>
+    <div class="paginacao">
+      <% if (pagina > 1) { %><a class="botao pequeno" href="?<%= qs(pagina - 1) %>">Anterior</a><% } %>
+      <span>Página <%= pagina %> de <%= paginas %></span>
+      <% if (pagina < paginas) { %><a class="botao pequeno" href="?<%= qs(pagina + 1) %>">Próxima</a><% } %>
+    </div>
+  <% } %>
+</div>
+<%- include('partials/rodape') %>

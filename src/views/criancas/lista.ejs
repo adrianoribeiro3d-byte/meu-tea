@@ -1,0 +1,54 @@
+<%- include('../partials/topo', { titulo: 'Crianças' }) %>
+<div class="cabecalho">
+  <div>
+    <h1><%= usuario.perfil === 'admin' ? 'Crianças' : 'Minhas crianças' %></h1>
+    <p class="sub"><%= usuario.perfil === 'admin' ? 'Cadastro geral da Secretaria de Inclusão' : 'Crianças às quais você está vinculado(a) para acompanhamento' %></p>
+  </div>
+  <% if (pode('editarCriancas')) { %><div class="acoes"><a class="botao" href="/importar">Importar planilha</a><a class="botao primario" href="/criancas/nova">Nova criança</a></div><% } %>
+</div>
+
+<form class="filtros cartao" method="get">
+  <div class="campo" style="max-width:320px;flex-basis:260px"><label for="busca">Buscar</label><input type="search" id="busca" name="busca" value="<%= q.busca || '' %>" placeholder="Nome, código ou escola"></div>
+  <div class="campo"><label for="condicao">Condição</label>
+    <select id="condicao" name="condicao"><option value="">Todas</option>
+      <% CONDICOES.forEach(function (c) { %><option <%= q.condicao === c ? 'selected' : '' %>><%= c %></option><% }) %></select></div>
+  <div class="campo"><label for="laudo">Laudo</label>
+    <select id="laudo" name="laudo"><option value="">Todos</option>
+      <% Object.entries(LAUDO).forEach(function ([k, v]) { %><option value="<%= k %>" <%= q.laudo === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
+  <div class="campo"><label for="consentimento">Consentimento</label>
+    <select id="consentimento" name="consentimento"><option value="">Todos</option><option value="pendente" <%= q.consentimento === 'pendente' ? 'selected' : '' %>>Pendente</option></select></div>
+  <div class="acoes"><button class="primario" type="submit">Filtrar</button><a class="botao" href="/criancas">Limpar</a></div>
+</form>
+
+<div class="cartao">
+  <p class="muted pequeno"><%= fmtNum(total) %> resultado(s)</p>
+  <% if (!lista.length) { %>
+    <p class="muted"><%= usuario.perfil === 'admin' ? 'Nenhum cadastro encontrado.' : 'Nenhuma criança vinculada a você. Solicite o vínculo à Secretaria de Inclusão.' %></p>
+  <% } else { %>
+  <div class="tabela-wrap"><table>
+    <thead><tr><th>Código</th><th>Nome</th><th class="num">Idade</th><th>Condições</th><th>Escola</th><th>Laudo</th><th>Último atendimento</th></tr></thead>
+    <tbody>
+    <% lista.forEach(function (c) { %>
+      <tr>
+        <td class="num"><a href="/criancas/<%= c.id %>"><%= c.codigo %></a></td>
+        <td><a href="/criancas/<%= c.id %>"><%= c.nome %></a>
+          <% if (!c.consentimento && !c.anonimizada) { %><br><span class="etiqueta alerta">consentimento pendente</span><% } %></td>
+        <td class="num"><%= c.idade ?? '—' %></td>
+        <td><% c.condicoes.forEach(function (x) { %><span class="etiqueta azul"><%= CONDICAO_CURTA[x] || x %></span> <% }) %></td>
+        <td><%= c.escola || '—' %><% if (c.serie) { %><br><span class="muted pequeno"><%= c.serie %></span><% } %></td>
+        <td><span class="etiqueta <%= c.laudo === 'sim' ? 'ok' : c.laudo === 'em_avaliacao' ? 'alerta' : '' %>"><%= LAUDO[c.laudo] %></span></td>
+        <td><%= c.atend ? fmtData(c.atend.ultima) : '—' %><% if (c.atend) { %><br><span class="muted pequeno"><%= c.atend.n %> registro(s)</span><% } %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <% if (paginas > 1) { const qs = (n) => new URLSearchParams(Object.assign({}, q, { pagina: n })).toString(); %>
+    <div class="paginacao">
+      <% if (pagina > 1) { %><a class="botao pequeno" href="?<%= qs(pagina - 1) %>">Anterior</a><% } %>
+      <span>Página <%= pagina %> de <%= paginas %></span>
+      <% if (pagina < paginas) { %><a class="botao pequeno" href="?<%= qs(pagina + 1) %>">Próxima</a><% } %>
+    </div>
+  <% } %>
+  <% } %>
+</div>
+<%- include('../partials/rodape') %>
