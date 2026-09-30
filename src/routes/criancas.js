@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db');
 const auth = require('../auth');
 const criancas = require('../criancas');
+const { gerarRelatorioPdf } = require('../relatorioPdf');
 const { cifrar, decifrar, normalizar } = require('../seguranca');
 const { ESPECIALIDADES, TIPOS_ATENDIMENTO, EVOLUCAO, LAUDO, ehProfissional } = require('../dominio');
 
@@ -182,13 +183,13 @@ r.post('/:id/acompanhamentos/novo', auth.exigir('registrarAcompanhamento'), (req
   res.redirect(`/criancas/${c.id}#historico`);
 });
 
-// ---------- Relatório de acompanhamento (para impressão / PDF) ----------
-r.get('/:id/relatorio', auth.exigir('relatorios'), (req, res) => {
+// ---------- Relatório de acompanhamento (tela, impressão e PDF) ----------
+function montarRelatorio(req) {
   const c = req.crianca;
   const q = req.query;
   const filtro = {
-    inicio: /^\d{4}-\d{2}-\d{2}$/.test(q.inicio || '') ? q.inicio : '',
-    fim: /^\d{4}-\d{2}-\d{2}$/.test(q.fim || '') ? q.fim : '',
+    inicio: criancas.dataValida(q.inicio) ? q.inicio : '',
+    fim: criancas.dataValida(q.fim) ? q.fim : '',
     especialidade: q.especialidade in ESPECIALIDADES ? q.especialidade : '',
   };
   const registros = listarAcompanhamentos(req.usuario, c.id, filtro);
@@ -200,8 +201,21 @@ r.get('/:id/relatorio', auth.exigir('relatorios'), (req, res) => {
     if (a.data > s.ultima) s.ultima = a.data;
     if (a.evolucao !== 'nao_avaliado') s.evolucao[a.evolucao] = (s.evolucao[a.evolucao] || 0) + 1;
   }
-  auth.auditar(req, 'gerou_relatorio', { entidade: 'crianca', entidadeId: c.id, detalhes: filtro });
-  res.render('criancas/relatorio', { c, registros, resumo, filtro, equipe: equipe(c.id), geradoEm: new Date() });
+  return { c, registros, resumo, filtro, equipe: equipe(c.id), geradoEm: new Date() };
+}
+
+r.get('/:id/relatorio', auth.exigir('relatorios'), (req, res) => {
+  const dados = montarRelatorio(req);
+  auth.auditar(req, 'gerou_relatorio', { entidade: 'crianca', entidadeId: dados.c.id, detalhes: dados.filtro });
+  res.render('criancas/relatorio', { ...dados, qsPdf: new URLSearchParams(Object.entries(dados.filtro).filter(([, v]) => v)).toString() });
+});
+
+r.get('/:id/relatorio.pdf', auth.exigir('relatorios'), (req, res) => {
+  const dados = montarRelatorio(req);
+  auth.auditar(req, 'exportou_relatorio_pdf', { entidade: 'crianca', entidadeId: dados.c.id, detalhes: dados.filtro });
+  res.set('Content-Type', 'application/pdf');
+  res.set('Content-Disposition', `attachment; filename="relatorio-${dados.c.codigo}-${new Date().toISOString().slice(0, 10)}.pdf"`);
+  gerarRelatorioPdf({ ...dados, usuario: req.usuario, adm: !ehProfissional(req.usuario.perfil) }, res);
 });
 
 // ---------- Direitos do titular (LGPD art. 18) ----------

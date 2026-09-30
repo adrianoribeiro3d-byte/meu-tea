@@ -4,9 +4,12 @@
   <div>
     <p class="muted pequeno" style="margin:0"><a href="/criancas/<%= c.id %>">← <%= c.nome %></a></p>
     <h1>Relatório de acompanhamento</h1>
-    <p class="sub">Selecione o período e a especialidade; depois imprima ou salve em PDF.</p>
+    <p class="sub">Selecione o período e a especialidade e clique em <strong>Atualizar</strong>; depois baixe o PDF.</p>
   </div>
-  <div class="acoes"><button type="button" class="primario" data-imprimir>Imprimir / salvar PDF</button></div>
+  <div class="acoes">
+    <a class="botao primario" href="/criancas/<%= c.id %>/relatorio.pdf<%= qsPdf ? '?' + qsPdf : '' %>">Baixar PDF</a>
+    <button type="button" data-imprimir>Imprimir</button>
+  </div>
 </div>
 
 <form class="filtros cartao nao-imprimir" method="get">

@@ -168,3 +168,24 @@ test('painel individual mostra só as crianças e registros do próprio profissi
   assert.strictEqual((await a.get(`/criancas/${cB}`)).status, 404);
   assert.strictEqual((await a.get('/panorama')).status, 200, 'panorama anônimo continua disponível');
 });
+
+test('relatório em PDF respeita o perfil de quem exporta', async () => {
+  criarUsuario('admpdf@t', 'admin');
+  const idProf = criarUsuario('fonopdf@t', 'fonoaudiologo');
+  const idC = criancas.inserir(dadosCrianca('Criança Do PDF'));
+  db.prepare('INSERT INTO vinculos VALUES (?, ?, datetime())').run(idC, idProf);
+  const prof = await entrar('fonopdf@t');
+  await prof.post(`/criancas/${idC}/acompanhamentos/novo`, { _csrf: prof.csrf, data: '2026-03-01', tipo: 'sessao', descricao: 'Texto clinico do PDF 123' });
+  const r = await prof.get(`/criancas/${idC}/relatorio.pdf`);
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.headers.get('content-type'), 'application/pdf');
+  assert.match(r.headers.get('content-disposition'), /attachment; filename="relatorio-MT-\d+-/);
+  const bytes = Buffer.from(await r.arrayBuffer());
+  assert.strictEqual(bytes.subarray(0, 5).toString(), '%PDF-');
+  assert.ok(db.prepare(`SELECT 1 FROM auditoria WHERE acao = 'exportou_relatorio_pdf' AND entidade_id = ?`).get(idC));
+  const adm = await entrar('admpdf@t');
+  assert.strictEqual((await adm.get(`/criancas/${idC}/relatorio.pdf`)).status, 200);
+  criarUsuario('nutripdf@t', 'nutricionista');
+  const semVinculo = await entrar('nutripdf@t');
+  assert.strictEqual((await semVinculo.get(`/criancas/${idC}/relatorio.pdf`)).status, 404, 'sem vínculo não exporta');
+});
