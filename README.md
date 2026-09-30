@@ -35,6 +35,32 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 | Profissionais | **Meu painel** (+ panorama geral anônimo) | só as vinculadas | vê e registra | — |
 | Gestor | Dashboard geral (anônimo) | — | — | — |
 
+## Colocar no ar com um endereço fixo (Render)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/adrianoribeiro3d-byte/meu-tea)
+
+1. Clique no botão acima e entre no Render usando **"GitHub"**. Se o Render pedir, autorize o acesso ao repositório `meu-tea`.
+2. Em **MEUTEA_DEMO_SENHA**, escolha a senha dos usuários de demonstração.
+3. Clique em **Deploy Blueprint** / **Apply** e espere de 3 a 5 minutos.
+4. Abra o endereço `https://meu-tea-xxxx.onrender.com` que aparece no painel do Render.
+
+Esse ambiente é uma **demonstração com dados fictícios**. No plano gratuito:
+- o sistema "adormece" depois de 15 minutos sem uso, e o primeiro acesso seguinte demora cerca de 1 minuto;
+- os dados voltam ao estado inicial quando o serviço reinicia.
+
+**Não cadastre dados reais nele.** Para uso real, veja a seção “Produção”.
+
+## Rodar no seu computador (dois cliques)
+
+1. Instale o **Node.js** (versão LTS) em https://nodejs.org/pt. É uma instalação comum: basta clicar em “Avançar” até terminar.
+2. No GitHub, clique em **Code → Download ZIP** e extraia o arquivo.
+3. Abra a pasta extraída e dê dois cliques em:
+   - **Windows:** `Iniciar Meu TEA (Windows).bat`
+   - **Mac:** `Iniciar Meu TEA (Mac).command`. Na primeira vez, use o botão direito → Abrir.
+4. O navegador abre sozinho. Entre com `admin@meutea.demo` ou `fono@meutea.demo`, senha `demo12345678`.
+
+Para encerrar, feche a janela preta.
+
 ## Ver funcionando sem instalar nada (GitHub Codespaces)
 
 [![Abrir no GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/adrianoribeiro3d-byte/meu-tea?quickstart=1)

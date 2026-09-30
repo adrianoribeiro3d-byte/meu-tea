@@ -8,7 +8,7 @@ const dominio = require('./dominio');
 const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.set('trust proxy', 'loopback');
+app.set('trust proxy', config.trustProxy);
 app.disable('x-powered-by');
 
 app.use(helmet({
@@ -41,6 +41,8 @@ app.use((req, res, next) => {
     fmtData: (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—'),
     fmtDataHora: (iso) => (iso ? `${iso.slice(0, 10).split('-').reverse().join('/')} ${iso.slice(11, 16)}` : '—'),
     fmtNum: (n) => (n == null ? '—' : Number(n).toLocaleString('pt-BR')),
+    demo: config.demo,
+    demoSenhaPadrao: config.demoSenha === 'demo12345678',
   });
   next();
 });
@@ -64,6 +66,13 @@ app.use((err, req, res, next) => {
 });
 
 if (require.main === module) {
+  if (config.demo) {
+    const db = require('./db');
+    if (!db.prepare('SELECT COUNT(*) AS n FROM usuarios').get().n) {
+      require('../scripts/demo')(config.demoSenha);
+      console.log('[Meu TEA] Modo demonstração: dados fictícios criados.');
+    }
+  }
   app.listen(config.porta, () => console.log(`Meu TEA em http://localhost:${config.porta}`));
 }
 

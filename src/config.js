@@ -20,8 +20,10 @@ const producao = process.env.NODE_ENV === 'production';
 function carregarChaveMestra() {
   const hex = process.env.MEUTEA_MASTER_KEY;
   if (hex) {
-    if (!/^[0-9a-fA-F]{64}$/.test(hex)) throw new Error('MEUTEA_MASTER_KEY deve ter 64 caracteres hexadecimais (32 bytes).');
-    return Buffer.from(hex, 'hex');
+    if (/^[0-9a-fA-F]{64}$/.test(hex)) return Buffer.from(hex, 'hex');
+    // Aceita também segredos gerados por provedores de hospedagem (ex.: Render), com ao menos 32 caracteres
+    if (hex.length < 32) throw new Error('MEUTEA_MASTER_KEY deve ter 64 caracteres hexadecimais ou um segredo aleatório de 32+ caracteres.');
+    return crypto.createHash('sha256').update(hex).digest();
   }
   if (producao) throw new Error('Defina MEUTEA_MASTER_KEY no ambiente de produção.');
   // Desenvolvimento: gera e guarda uma chave local
@@ -42,4 +44,9 @@ module.exports = {
   minGrupo: Math.max(0, Number(process.env.LGPD_MIN_GRUPO ?? 3) || 0),
   sessaoMinutos: Number(process.env.SESSAO_MINUTOS) || 30,
   versaoTermo: '1.0',
+  // Ambiente de demonstração: cria dados fictícios automaticamente e exibe aviso em todas as páginas
+  demo: process.env.MEUTEA_DEMO === '1',
+  demoSenha: process.env.MEUTEA_DEMO_SENHA || 'demo12345678',
+  // Atrás de um proxy/hospedagem (Render, Railway…) use TRUST_PROXY=1 para registrar o IP real
+  trustProxy: process.env.TRUST_PROXY ? (/^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY) : 'loopback',
 };

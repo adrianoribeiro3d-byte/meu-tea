@@ -1,0 +1,23 @@
+# Publicação no Render (https://render.com) — ambiente de DEMONSTRAÇÃO com dados fictícios.
+# No plano gratuito o disco não é permanente: os dados voltam ao estado inicial quando o serviço reinicia.
+services:
+  - type: web
+    name: meu-tea
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: MEUTEA_DEMO
+        value: "1"
+      - key: MEUTEA_MASTER_KEY
+        generateValue: true
+      - key: MEUTEA_DEMO_SENHA
+        sync: false

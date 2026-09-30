@@ -1,9 +1,11 @@
 <%- include('partials/cabeca', { titulo: 'Entrar' }) %>
 <body>
+<% if (demo) { %><div role="note" style="background:#fff3d6;color:#6b4500;border-bottom:1px solid #f0d58a;padding:8px 16px;text-align:center;font-size:.85rem;font-weight:600">Ambiente de DEMONSTRAÇÃO com dados fictícios — não cadastre dados reais de crianças aqui.</div><% } %>
 <main class="centro">
   <div class="caixa-login">
     <div class="marca"><%- include('partials/logo') %> Meu TEA</div>
     <p class="sub" style="text-align:center">Acompanhamento de crianças neurodivergentes</p>
+    <% if (demo) { %><div class="aviso info pequeno">Demonstração: entre com <strong>admin@meutea.demo</strong> (Secretaria) ou <strong>fono@meutea.demo</strong> (profissional).<br><%= demoSenhaPadrao ? 'Senha: demo12345678' : 'Use a senha definida na criação do ambiente.' %></div><% } %>
     <div class="cartao">
       <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
       <form method="post" action="/login">
