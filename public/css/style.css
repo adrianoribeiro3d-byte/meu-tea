@@ -107,6 +107,7 @@ p { margin: 0 0 12px; }
 /* ---------- componentes ---------- */
 .cartao { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio); padding: 20px; box-shadow: var(--sombra); min-width: 0; }
 .cartao + .cartao { margin-top: 16px; }
+.grade > .cartao + .cartao { margin-top: 0; }
 .grade { display: grid; gap: 16px; }
 .grade-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grade-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
