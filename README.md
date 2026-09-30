@@ -2,7 +2,8 @@
 
 Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes (TEA, TDAH, dislexia, deficiência intelectual, altas habilidades e outras). Ele reúne:
 
-- **Dashboard** com estatísticas agregadas e anônimas: condições, faixa etária, nível de suporte, laudo, sexo, bairro, escola, atendimentos por mês e especialidade, cobertura por especialidade e evolução registrada.
+- **Painel individual de cada profissional**: com login e senha próprios, o profissional vê só as crianças vinculadas a ele e os atendimentos que registrou. O painel mostra quem está sem avaliação inicial ou sem atendimento há mais de 30 dias, os atendimentos por mês, a evolução registrada e os últimos registros.
+- **Dashboard geral** (panorama da rede) com estatísticas agregadas e anônimas: condições, faixa etária, nível de suporte, laudo, sexo, bairro, escola, atendimentos por mês e especialidade, cobertura por especialidade e evolução registrada.
 - **Importação das planilhas** da Secretaria (.xlsx ou .csv). Os nomes de coluna são reconhecidos automaticamente e há uma prévia com validação antes de gravar.
 - **Ficha da criança** com a equipe multiprofissional vinculada: neuropedagogo, psicólogo, fonoaudiólogo, nutricionista, terapeuta ocupacional, psicopedagogo, professor de AEE etc.
 - **Registro de acompanhamento** por profissional, com evolução (avançou / manteve / regrediu) e opção de sigilo.
@@ -15,6 +16,7 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 | Dashboard anônimo | Mostra apenas contagens. Grupos com menos de `LGPD_MIN_GRUPO` crianças (padrão 3) entram em “Outros” ou aparecem como “< 3”. Um filtro que resulte em poucas crianças fica oculto. |
 | Criptografia | Nome, nascimento, responsável, telefone, observações e textos clínicos ficam no banco cifrados com AES-256-GCM. A duplicidade é detectada por índice cego (HMAC), sem guardar o nome em claro. |
 | Necessidade de acesso | O profissional só vê as crianças às quais foi **vinculado** pela Secretaria. O gestor vê só o dashboard. |
+| Conteúdo clínico | Anotações, objetivos, encaminhamentos e evolução ficam visíveis **somente aos profissionais da equipe**. A Secretaria vê apenas a data, o tipo, a especialidade e o profissional de cada atendimento, inclusive no relatório e na exportação. |
 | Sigilo profissional | Um registro marcado como sigiloso só é visível ao autor e à mesma especialidade. As demais especialidades veem apenas a data e o tipo. |
 | Auditoria | Login, visualização de ficha, relatório, importação, exportação e acesso negado ficam registrados. Gatilhos no SQLite impedem alterar ou apagar a trilha. |
 | Termo de confidencialidade | Aceite obrigatório no primeiro acesso, com versão e data gravadas. |
@@ -27,11 +29,11 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 
 ## Perfis
 
-| Perfil | Dashboard | Crianças | Registrar acompanhamento | Importar / usuários / auditoria |
+| Perfil | Página inicial | Crianças | Conteúdo dos acompanhamentos | Importar / usuários / auditoria |
 |---|---|---|---|---|
-| Administrador (Secretaria) | ✔ | todas | — | ✔ |
-| Profissionais | ✔ | só as vinculadas | ✔ | — |
-| Gestor | ✔ | — | — | — |
+| Administrador (Secretaria) | Dashboard geral (anônimo) | cadastro de todas | não vê (só datas e especialidades) | ✔ |
+| Profissionais | **Meu painel** (+ panorama geral anônimo) | só as vinculadas | vê e registra | — |
+| Gestor | Dashboard geral (anônimo) | — | — | — |
 
 ## Como rodar
 

@@ -1,8 +1,8 @@
-<%- include('partials/topo', { titulo: 'Dashboard' }) %>
+<%- include('partials/topo', { titulo: base === '/' ? 'Dashboard' : 'Panorama geral' }) %>
 <div class="cabecalho">
   <div>
-    <h1>Dashboard</h1>
-    <p class="sub">Levantamento das crianças neurodivergentes acompanhadas pela Secretaria de Inclusão</p>
+    <h1><%= base === '/' ? 'Dashboard' : 'Panorama geral da rede' %></h1>
+    <p class="sub">Levantamento de todas as crianças neurodivergentes acompanhadas pela Secretaria de Inclusão</p>
   </div>
   <div class="acoes">
     <span class="selo-lgpd" title="Somente dados agregados, sem identificação">● Dados anonimizados</span>
@@ -10,7 +10,7 @@
   </div>
 </div>
 
-<form class="filtros cartao" method="get" action="/">
+<form class="filtros cartao" method="get" action="<%= base %>">
   <div class="campo"><label for="f-condicao">Condição</label>
     <select id="f-condicao" name="condicao"><option value="">Todas</option>
       <% opcoes.condicoes.forEach(function (c) { %><option value="<%= c %>" <%= filtro.condicao === c ? 'selected' : '' %>><%= c %></option><% }) %>
@@ -27,7 +27,7 @@
     <select id="f-sexo" name="sexo"><option value="">Todos</option>
       <% Object.entries(opcoes.sexos).forEach(function ([k, v]) { %><option value="<%= k %>" <%= filtro.sexo === k ? 'selected' : '' %>><%= v %></option><% }) %>
     </select></div>
-  <div class="acoes"><button type="submit" class="primario">Aplicar</button><a class="botao" href="/">Limpar</a></div>
+  <div class="acoes"><button type="submit" class="primario">Aplicar</button><a class="botao" href="<%= base %>">Limpar</a></div>
 </form>
 
 <% if (est.suprimido) { %>

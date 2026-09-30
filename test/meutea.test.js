@@ -135,3 +135,36 @@ test('anonimização remove identificação e mantém estatística', () => {
   assert.strictEqual(l.telefone_cifrado, null);
   assert.strictEqual(estatisticas.calcular({}).total, antes);
 });
+
+test('Secretaria não vê conteúdo dos acompanhamentos', async () => {
+  criarUsuario('adm@t', 'admin');
+  const idProf = criarUsuario('to@t', 'terapeuta_ocupacional');
+  const idC = criancas.inserir(dadosCrianca('Criança Conteúdo'));
+  db.prepare('INSERT INTO vinculos VALUES (?, ?, datetime())').run(idC, idProf);
+  const to = await entrar('to@t');
+  await to.post(`/criancas/${idC}/acompanhamentos/novo`, { _csrf: to.csrf, data: '2026-02-01', tipo: 'sessao', evolucao: 'avancou', descricao: 'Texto aberto para a equipe ABC' });
+  assert.ok((await (await to.get(`/criancas/${idC}`)).text()).includes('Texto aberto para a equipe ABC'));
+
+  const adm = await entrar('adm@t');
+  const ficha = await (await adm.get(`/criancas/${idC}`)).text();
+  assert.ok(!ficha.includes('Texto aberto para a equipe ABC'));
+  assert.ok(ficha.includes('restrito aos profissionais da equipe'));
+  assert.ok(!ficha.includes('Avançou'), 'evolução também é ocultada');
+  assert.ok(!(await (await adm.get(`/criancas/${idC}/relatorio`)).text()).includes('Texto aberto para a equipe ABC'));
+  assert.ok(!(await (await adm.get(`/criancas/${idC}/exportar`)).text()).includes('Texto aberto para a equipe ABC'));
+});
+
+test('painel individual mostra só as crianças e registros do próprio profissional', async () => {
+  const idA = criarUsuario('nutriA@t', 'nutricionista');
+  const idB = criarUsuario('nutriB@t', 'nutricionista');
+  const cA = criancas.inserir(dadosCrianca('Criança Do Painel A'));
+  const cB = criancas.inserir(dadosCrianca('Criança Do Painel B'));
+  db.prepare('INSERT INTO vinculos VALUES (?, ?, datetime())').run(cA, idA);
+  db.prepare('INSERT INTO vinculos VALUES (?, ?, datetime())').run(cB, idB);
+  const a = await entrar('nutriA@t');
+  const html = await (await a.get('/')).text();
+  assert.ok(html.includes('Meu painel') && html.includes('Criança Do Painel A'));
+  assert.ok(!html.includes('Criança Do Painel B'));
+  assert.strictEqual((await a.get(`/criancas/${cB}`)).status, 404);
+  assert.strictEqual((await a.get('/panorama')).status, 200, 'panorama anônimo continua disponível');
+});

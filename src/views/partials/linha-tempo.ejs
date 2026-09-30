@@ -11,7 +11,7 @@
       <span class="muted">· <%= a.profissional_nome %><%= a.registro_profissional ? ' (' + a.registro_profissional + ')' : '' %></span>
     </div>
     <% if (!a.visivel) { %>
-      <p class="muted pequeno">Conteúdo restrito à especialidade <%= ESPECIALIDADES[a.especialidade] %> (sigilo profissional).</p>
+      <p class="muted pequeno"><% if (usuario.perfil === 'admin') { %>Conteúdo restrito aos profissionais da equipe de acompanhamento.<% } else { %>Conteúdo restrito à especialidade <%= ESPECIALIDADES[a.especialidade] %> (sigilo profissional).<% } %></p>
     <% } else { %>
       <% if (a.objetivos) { %><div class="bloco"><strong>Objetivos</strong><div class="texto"><%= a.objetivos %></div></div><% } %>
       <div class="bloco"><strong>Descrição / evolução</strong><div class="texto"><%= a.descricao %></div></div>

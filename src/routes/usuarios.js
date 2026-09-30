@@ -17,6 +17,7 @@ function senhaProvisoria() {
 }
 
 const listar = () => db.prepare(`SELECT u.*, (SELECT COUNT(*) FROM vinculos v WHERE v.usuario_id = u.id) AS criancas,
+  (SELECT COUNT(*) FROM acompanhamentos ac WHERE ac.profissional_id = u.id AND ac.data >= date('now', '-30 days')) AS atend30,
   (SELECT MAX(criado_em) FROM auditoria a WHERE a.usuario_id = u.id AND a.acao = 'login') AS ultimo_login
   FROM usuarios u ORDER BY u.ativo DESC, u.nome`).all();
 

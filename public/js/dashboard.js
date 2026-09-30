@@ -16,7 +16,7 @@
   Chart.defaults.font.size = 12;
   Chart.defaults.animation = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 300 };
 
-  const fmt = (n) => (n == null ? '< ' + est.minGrupo : Number(n).toLocaleString('pt-BR'));
+  const fmt = (n) => (n == null ? '< ' + (est.minGrupo || 3) : Number(n).toLocaleString('pt-BR'));
   const graficos = [];
 
   function base(t, { horizontal = false, empilhado = false, legenda = false } = {}) {
@@ -123,6 +123,26 @@
     data: { labels: rotulos(est.porEscola), datasets: [{ label: 'Crianças', data: valores(est.porEscola), ...barraH(t.serie[0]) }] },
     options: base(t, { horizontal: true }),
   }));
+
+  // Painel individual do profissional
+  const nomesMes = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  if (est.meuMensal) {
+    criar('g-meu-mensal', (t) => ({
+      type: 'bar',
+      data: {
+        labels: est.meuMensal.meses.map((m) => `${nomesMes[Number(m.slice(5)) - 1]}/${m.slice(2, 4)}`),
+        datasets: [{ label: 'Meus atendimentos', data: est.meuMensal.valores, ...barra(t.serie[0]) }],
+      },
+      options: (() => { const o = base(t); o.scales.x.ticks.autoSkip = true; return o; })(),
+    }));
+  }
+  if (est.minhasCondicoes) {
+    criar('g-minhas-condicoes', (t) => ({
+      type: 'bar',
+      data: { labels: rotulos(est.minhasCondicoes), datasets: [{ label: 'Crianças', data: valores(est.minhasCondicoes), ...barraH(t.serie[0]) }] },
+      options: base(t, { horizontal: true }),
+    }));
+  }
 
   desenhar();
   // Redesenha ao alternar tema claro/escuro do sistema

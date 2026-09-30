@@ -8,7 +8,12 @@
   <aside class="lateral" id="menu">
     <a href="/" class="marca"><%- include('logo') %> Meu TEA</a>
     <nav>
-      <a href="/" class="<%= caminho === '/' ? 'ativo' : '' %>">Dashboard</a>
+      <% if (ESPECIALIDADES[usuario.perfil]) { %>
+        <a href="/" class="<%= caminho === '/' ? 'ativo' : '' %>">Meu painel</a>
+        <a href="/panorama" class="<%= caminho === '/panorama' ? 'ativo' : '' %>">Panorama geral</a>
+      <% } else { %>
+        <a href="/" class="<%= caminho === '/' ? 'ativo' : '' %>">Dashboard</a>
+      <% } %>
       <% if (pode('verCriancas')) { %>
         <a href="/criancas" class="<%= caminho.startsWith('/criancas') ? 'ativo' : '' %>"><%= usuario.perfil === 'admin' ? 'Crianças' : 'Minhas crianças' %></a>
       <% } %>

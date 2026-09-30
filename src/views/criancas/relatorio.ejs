@@ -17,11 +17,13 @@
   <div class="acoes"><button type="submit">Atualizar</button></div>
 </form>
 
+<% const adm = !ESPECIALIDADES[usuario.perfil]; %>
+<% if (adm) { %><div class="aviso info nao-imprimir">Na visão da Secretaria, o relatório mostra apenas <strong>quando</strong> e <strong>por quem</strong> a criança foi atendida. O conteúdo clínico e a evolução são visíveis somente aos profissionais da equipe, que podem emitir o relatório completo.</div><% } %>
 <article>
   <div class="cartao">
     <div class="grafico-cab">
       <div><div class="marca" style="padding:0 0 6px"><%- include('../partials/logo') %> Meu TEA</div>
-        <h2 style="margin:0">Relatório de acompanhamento multiprofissional</h2></div>
+        <h2 style="margin:0"><%= adm ? 'Relatório de atendimentos (visão administrativa)' : 'Relatório de acompanhamento multiprofissional' %></h2></div>
       <div class="pequeno muted" style="text-align:right">Emitido em <%= geradoEm.toLocaleString('pt-BR') %><br>por <%= usuario.nome %></div>
     </div>
     <p class="pequeno muted">Período: <%= filtro.inicio ? fmtData(filtro.inicio) : 'início' %> a <%= filtro.fim ? fmtData(filtro.fim) : 'hoje' %> · Especialidade: <%= filtro.especialidade ? ESPECIALIDADES[filtro.especialidade] : 'todas' %></p>
@@ -43,11 +45,11 @@
     <% const esp = Object.entries(resumo); %>
     <% if (!esp.length) { %><p class="muted">Sem registros no período.</p><% } else { %>
     <div class="tabela-wrap"><table>
-      <thead><tr><th>Especialidade</th><th class="num">Registros</th><th>Primeiro</th><th>Último</th><th>Evolução registrada</th><th>Profissional(is) na equipe</th></tr></thead>
+      <thead><tr><th>Especialidade</th><th class="num">Registros</th><th>Primeiro</th><th>Último</th><% if (!adm) { %><th>Evolução registrada</th><% } %><th>Profissional(is) na equipe</th></tr></thead>
       <tbody>
       <% esp.forEach(function ([k, s]) { const ev = Object.entries(s.evolucao); %>
         <tr><td><%= ESPECIALIDADES[k] || k %></td><td class="num"><%= s.total %></td><td><%= fmtData(s.primeira) %></td><td><%= fmtData(s.ultima) %></td>
-          <td><%= ev.length ? ev.map(function ([e, n]) { return EVOLUCAO[e] + ': ' + n; }).join(' · ') : '—' %></td>
+          <% if (!adm) { %><td><%= ev.length ? ev.map(function ([e, n]) { return EVOLUCAO[e] + ': ' + n; }).join(' · ') : '—' %></td><% } %>
           <td><%= equipe.filter(function (e) { return e.perfil === k; }).map(function (e) { return e.nome; }).join(', ') || '—' %></td></tr>
       <% }) %>
       </tbody>
@@ -56,7 +58,7 @@
   </div>
 
   <div class="cartao">
-    <h2>Histórico detalhado</h2>
+    <h2><%= adm ? 'Atendimentos realizados' : 'Histórico detalhado' %></h2>
     <%- include('../partials/linha-tempo', { registros: registros.slice().reverse(), noPeriodo: true }) %>
   </div>
 

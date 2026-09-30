@@ -16,8 +16,8 @@
   <div class="campo"><label for="descricao">🔒 Descrição do atendimento / evolução *</label><textarea id="descricao" name="descricao" required style="min-height:160px"><%= a.descricao || '' %></textarea>
     <div class="ajuda">Registre apenas o necessário para a continuidade do cuidado (princípio da necessidade).</div></div>
   <div class="campo"><label for="encaminhamentos">🔒 Encaminhamentos e orientações</label><textarea id="encaminhamentos" name="encaminhamentos" style="min-height:80px"><%= a.encaminhamentos || '' %></textarea></div>
-  <label class="check campo"><input type="checkbox" name="sigiloso" value="1" <%= a.sigiloso ? 'checked' : '' %>> <span><strong>Registro sigiloso</strong> — visível apenas para <%= PERFIS[usuario.perfil] %>. Demais profissionais verão somente data e tipo do atendimento.</span></label>
-  <div class="aviso info pequeno">Após salvo, o registro não pode ser alterado nem apagado (integridade do prontuário). Para corrigir, registre uma nova anotação.</div>
+  <label class="check campo"><input type="checkbox" name="sigiloso" value="1" <%= a.sigiloso ? 'checked' : '' %>> <span><strong>Registro sigiloso</strong> — visível apenas para <%= PERFIS[usuario.perfil] %>. Os demais profissionais da equipe verão somente a data e o tipo do atendimento.</span></label>
+  <div class="aviso info pequeno">O conteúdo deste registro é visível somente aos profissionais da equipe — a Secretaria de Inclusão vê apenas data, tipo e especialidade.<br>Após salvo, o registro não pode ser alterado nem apagado (integridade do prontuário). Para corrigir, registre uma nova anotação.</div>
   <div class="acoes"><button type="submit" class="primario">Salvar registro</button><a class="botao" href="/criancas/<%= c.id %>">Cancelar</a></div>
 </form>
 <%- include('../partials/rodape') %>

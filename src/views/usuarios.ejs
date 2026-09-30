@@ -8,7 +8,7 @@
 <div class="grade grade-2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
   <div class="cartao">
     <div class="tabela-wrap"><table>
-      <thead><tr><th>Nome</th><th>Perfil</th><th class="num">Crianças</th><th>Último acesso</th><th></th></tr></thead>
+      <thead><tr><th>Nome</th><th>Perfil</th><th class="num">Crianças</th><th class="num">Atend. 30d</th><th>Último acesso</th><th></th></tr></thead>
       <tbody>
       <% usuarios.forEach(function (u) { %>
         <tr style="<%= u.ativo ? '' : 'opacity:.55' %>">
@@ -16,6 +16,7 @@
             <% if (!u.ativo) { %><br><span class="etiqueta">inativo</span><% } else if (u.trocar_senha) { %><br><span class="etiqueta alerta">aguardando 1º acesso</span><% } %></td>
           <td><%= PERFIS[u.perfil] %></td>
           <td class="num"><%= ['admin', 'gestor'].includes(u.perfil) ? '—' : u.criancas %></td>
+          <td class="num"><%= ['admin', 'gestor'].includes(u.perfil) ? '—' : u.atend30 %></td>
           <td class="pequeno"><%= fmtDataHora(u.ultimo_login) %></td>
           <td class="num" style="white-space:nowrap">
             <% if (u.id !== usuario.id) { %>

@@ -1,6 +1,8 @@
 const express = require('express');
 const estatisticas = require('../estatisticas');
 const auth = require('../auth');
+const painel = require('../painel');
+const { ehProfissional } = require('../dominio');
 
 const r = express.Router();
 
@@ -14,9 +16,20 @@ function lerFiltro(q) {
   return { f, opcoes };
 }
 
+// Página inicial: profissional vê o próprio painel; Secretaria e gestores veem o panorama geral
 r.get('/', (req, res) => {
+  if (ehProfissional(req.usuario.perfil)) {
+    auth.auditar(req, 'visualizou_painel');
+    return res.render('painel', { p: painel.calcular(req.usuario.id) });
+  }
   const { f, opcoes } = lerFiltro(req.query);
-  res.render('dashboard', { est: estatisticas.calcular(f), filtro: f, opcoes });
+  res.render('dashboard', { est: estatisticas.calcular(f), filtro: f, opcoes, base: '/' });
+});
+
+// Panorama geral da rede (somente dados agregados e anônimos)
+r.get('/panorama', (req, res) => {
+  const { f, opcoes } = lerFiltro(req.query);
+  res.render('dashboard', { est: estatisticas.calcular(f), filtro: f, opcoes, base: '/panorama' });
 });
 
 // Exportação somente dos dados agregados (já anonimizados)

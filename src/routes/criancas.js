@@ -39,6 +39,7 @@ function listarAcompanhamentos(usuario, criancaId, { inicio, fim, especialidade 
     return {
       ...a,
       visivel,
+      evolucao: visivel ? a.evolucao : 'nao_avaliado',
       objetivos: visivel ? decifrar(a.objetivos_cifrado) : '',
       descricao: visivel ? decifrar(a.descricao_cifrado) : '',
       encaminhamentos: visivel ? decifrar(a.encaminhamentos_cifrado) : '',
@@ -216,10 +217,10 @@ r.get('/:id/exportar', auth.exigir('administrar'), (req, res) => {
       consentimento: !!c.consentimento, consentimento_data: c.consentimento_data,
     },
     equipe: equipe(c.id).map((e) => ({ nome: e.nome, especialidade: ESPECIALIDADES[e.perfil] })),
-    acompanhamentos: listarAcompanhamentos({ id: 0, perfil: 'admin' }, c.id).map((a) => ({
+    // A Secretaria não acessa o conteúdo clínico: o conteúdo é fornecido pelos profissionais (relatório de acompanhamento)
+    acompanhamentos_aviso: 'O conteúdo dos atendimentos é mantido pelos profissionais da equipe e deve ser solicitado a eles.',
+    acompanhamentos: listarAcompanhamentos(req.usuario, c.id).map((a) => ({
       data: a.data, especialidade: ESPECIALIDADES[a.especialidade], tipo: TIPOS_ATENDIMENTO[a.tipo], profissional: a.profissional_nome,
-      evolucao: EVOLUCAO[a.evolucao], sigiloso: !!a.sigiloso,
-      ...(a.sigiloso ? {} : { objetivos: a.objetivos, descricao: a.descricao, encaminhamentos: a.encaminhamentos }),
     })),
   };
   auth.auditar(req, 'exportou_dados_titular', { entidade: 'crianca', entidadeId: c.id });

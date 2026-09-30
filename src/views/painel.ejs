@@ -1,0 +1,95 @@
+<%- include('partials/topo', { titulo: 'Meu painel' }) %>
+<% const k = p.kpis; %>
+<div class="cabecalho">
+  <div>
+    <h1>Olá, <%= usuario.nome.split(' ')[0] %></h1>
+    <p class="sub">Seu painel · <%= PERFIS[usuario.perfil] %> — somente as crianças vinculadas a você e os atendimentos que você registrou</p>
+  </div>
+  <div class="acoes">
+    <span class="selo-lgpd" title="Visível apenas para você">● Acesso individual</span>
+    <a class="botao" href="/criancas">Minhas crianças</a>
+  </div>
+</div>
+
+<% if (!k.criancas) { %>
+  <div class="aviso info">Ainda não há crianças vinculadas a você. A Secretaria de Inclusão faz o vínculo na ficha de cada criança.</div>
+<% } else { %>
+
+<div class="grade grade-kpi" style="margin-bottom:16px">
+  <div class="kpi heroi"><div class="rotulo">Minhas crianças</div><div class="valor"><%= fmtNum(k.criancas) %></div><div class="detalhe"><%= p.atendidas12m %> atendidas nos últimos 12 meses</div></div>
+  <div class="kpi"><div class="rotulo">Atendimentos neste mês</div><div class="valor"><%= fmtNum(k.atendimentosMes) %></div><div class="detalhe"><%= fmtNum(k.atendimentos30d) %> nos últimos 30 dias</div></div>
+  <div class="kpi atencao"><div class="rotulo">⚠ Sem avaliação inicial</div><div class="valor"><%= fmtNum(k.semAvaliacao) %></div><div class="detalhe">vinculadas, sem nenhum registro seu</div></div>
+  <div class="kpi atencao"><div class="rotulo">⚠ Sem atendimento há 30+ dias</div><div class="valor"><%= fmtNum(k.atrasadas) %></div><div class="detalhe">desde o seu último registro</div></div>
+  <div class="kpi"><div class="rotulo">Consentimento pendente</div><div class="valor"><%= fmtNum(k.semConsentimento) %></div><div class="detalhe">entre as suas crianças</div></div>
+</div>
+
+<div class="grade grade-2">
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Precisam de atenção</h2><span class="muted pequeno"><%= p.atencao.length %> criança(s)</span></div>
+    <% if (!p.atencao.length) { %><p class="muted">Tudo em dia: todas as suas crianças foram atendidas nos últimos 30 dias.</p><% } else { %>
+    <div class="tabela-wrap" style="max-height:340px;overflow:auto"><table>
+      <thead><tr><th>Criança</th><th>Situação</th><th></th></tr></thead>
+      <tbody>
+      <% p.atencao.slice(0, 20).forEach(function (c) { %>
+        <tr><td><a href="/criancas/<%= c.id %>"><%= c.nome %></a><br><span class="muted pequeno"><%= c.idade %> anos · <%= c.condicoes.map(function (x) { return CONDICAO_CURTA[x] || x; }).join(', ') %></span></td>
+          <td><span class="etiqueta <%= c.dias === null ? 'azul' : c.dias > 60 ? 'perigo' : 'alerta' %>"><%= c.motivo %></span></td>
+          <td class="num"><a class="botao pequeno" href="/criancas/<%= c.id %>/acompanhamentos/novo">Registrar</a></td></tr>
+      <% }) %>
+      </tbody>
+    </table></div>
+    <% if (p.atencao.length > 20) { %><p class="nota">Exibindo 20 de <%= p.atencao.length %>.</p><% } %>
+    <% } %>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Meus atendimentos por mês</h2><span class="muted pequeno">últimos 12 meses</span></div>
+    <div class="grafico"><canvas id="g-meu-mensal" role="img" aria-label="Gráfico de colunas: meus atendimentos por mês"></canvas></div>
+    <details class="tabela-dados"><summary>Ver tabela</summary><div class="tabela-wrap"><table>
+      <thead><tr><th>Mês</th><th class="num">Atendimentos</th></tr></thead>
+      <tbody><% p.mensal.meses.forEach(function (m, i) { %><tr><td><%= m.slice(5) %>/<%= m.slice(0, 4) %></td><td class="num"><%= p.mensal.valores[i] %></td></tr><% }) %></tbody>
+    </table></div></details>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Evolução nos meus registros</h2><span class="muted pequeno">últimos 6 meses · <%= fmtNum(p.totalAvaliados) %> avaliações</span></div>
+    <% const icones = { avancou: '▲', manteve: '■', regrediu: '▼' }; const cores = { avancou: 'var(--status-bom)', manteve: 'var(--status-atencao)', regrediu: 'var(--status-critico)' }; %>
+    <% p.evolucao.forEach(function (e) { %>
+      <div class="barra-pct"><span><%= icones[e.chave] %> <%= e.rotulo %></span><span class="trilho"><i style="width:<%= e.pct %>%;background:<%= cores[e.chave] %>"></i></span><span class="v"><%= String(e.pct).replace('.', ',') %>%</span></div>
+    <% }) %>
+    <div class="grafico-cab" style="margin-top:20px"><h2>Tipos de atendimento</h2><span class="muted pequeno">12 meses</span></div>
+    <% if (!p.porTipo.length) { %><p class="muted">Nenhum atendimento no período.</p><% } %>
+    <% p.porTipo.forEach(function (t) { %>
+      <div class="barra-pct"><span><%= t.rotulo %></span><span class="trilho"><i style="width:<%= t.pct %>%"></i></span><span class="v"><%= fmtNum(t.valor) %></span></div>
+    <% }) %>
+  </section>
+
+  <section class="cartao">
+    <div class="grafico-cab"><h2>Minhas crianças por condição</h2><span class="muted pequeno">uma criança pode ter mais de uma</span></div>
+    <div class="grafico"><canvas id="g-minhas-condicoes" role="img" aria-label="Gráfico de barras: minhas crianças por condição"></canvas></div>
+    <details class="tabela-dados"><summary>Ver tabela</summary><div class="tabela-wrap"><table>
+      <thead><tr><th>Condição</th><th class="num">Crianças</th></tr></thead>
+      <tbody><% p.porCondicao.forEach(function (c) { %><tr><td><%= c.rotulo %></td><td class="num"><%= c.valor %></td></tr><% }) %></tbody>
+    </table></div></details>
+  </section>
+
+  <section class="cartao span-2">
+    <h2>Meus últimos registros</h2>
+    <% if (!p.recentes.length) { %><p class="muted">Você ainda não registrou atendimentos.</p><% } else { %>
+    <div class="tabela-wrap"><table>
+      <thead><tr><th>Data</th><th>Criança</th><th>Tipo</th><th>Evolução</th></tr></thead>
+      <tbody>
+      <% p.recentes.forEach(function (a) { %>
+        <tr><td class="num"><%= fmtData(a.data) %></td><td><a href="/criancas/<%= a.crianca.id %>#historico"><%= a.crianca.nome %></a></td>
+          <td><%= TIPOS_ATENDIMENTO[a.tipo] %></td>
+          <td><% if (a.evolucao !== 'nao_avaliado') { %><span class="etiqueta <%= a.evolucao === 'avancou' ? 'ok' : a.evolucao === 'regrediu' ? 'perigo' : 'alerta' %>"><%= a.evolucao === 'avancou' ? '▲' : a.evolucao === 'regrediu' ? '▼' : '■' %> <%= EVOLUCAO[a.evolucao] %></span><% } else { %>—<% } %></td></tr>
+      <% }) %>
+      </tbody>
+    </table></div>
+    <% } %>
+  </section>
+</div>
+<script type="application/json" id="dados-dashboard"><%- JSON.stringify({ meuMensal: p.mensal, minhasCondicoes: p.porCondicao }).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chart.umd.min.js" defer></script>
+<script src="/js/dashboard.js" defer></script>
+<% } %>
+<%- include('partials/rodape') %>

@@ -115,8 +115,13 @@ function podeVerCrianca(usuario, criancaId) {
   return !!db.prepare('SELECT 1 FROM vinculos WHERE crianca_id = ? AND usuario_id = ?').get(criancaId, usuario.id);
 }
 
-/** Registro sigiloso: visível ao autor e a profissionais da mesma especialidade. */
+/**
+ * Conteúdo do acompanhamento (textos e evolução) é exclusivo dos profissionais da equipe.
+ * A Secretaria (admin) vê apenas data, tipo, especialidade e profissional.
+ * Registro sigiloso: somente o autor e profissionais da mesma especialidade.
+ */
 function podeVerRegistro(usuario, registro) {
+  if (!ehProfissional(usuario.perfil)) return false;
   if (!registro.sigiloso) return true;
   return registro.profissional_id === usuario.id || registro.especialidade === usuario.perfil;
 }
