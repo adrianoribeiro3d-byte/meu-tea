@@ -35,6 +35,17 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 | Profissionais | **Meu painel** (+ panorama geral anônimo) | só as vinculadas | vê e registra | — |
 | Gestor | Dashboard geral (anônimo) | — | — | — |
 
+## Ver funcionando sem instalar nada (GitHub Codespaces)
+
+[![Abrir no GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/adrianoribeiro3d-byte/meu-tea?quickstart=1)
+
+1. Clique no botão acima e depois em **Create codespace**.
+2. Aguarde de 2 a 3 minutos enquanto tudo é instalado e os dados fictícios de demonstração são criados.
+3. O sistema abre sozinho em uma nova aba. Se isso não acontecer, abra a aba **PORTS** (Portas), na parte de baixo, e clique no ícone de globo da porta 3000.
+4. Entre com `admin@meutea.demo` ou `fono@meutea.demo`. A senha é `demo12345678`.
+
+O endereço é privado: só abre para a sua conta do GitHub. Quando terminar, feche o codespace em https://github.com/codespaces para não gastar a cota gratuita.
+
 ## Como rodar
 
 Requisitos: Node.js 20 ou superior.
