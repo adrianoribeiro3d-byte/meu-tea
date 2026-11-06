@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuro Sistema · Gestão e monitoramento do desenvolvimento neurodivergente</title>
+<meta name="description" content="Sistema para acompanhar, planejar intervenções e avaliar a evolução de crianças neurodivergentes (TEA, TDAH, TOD, dislexia e outras), com proteção de dados conforme a LGPD.">
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/outfit-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<% const icone = (nome) => include('site/icones/' + nome); %>
+
+<header class="topo">
+  <div class="container topo-linha">
+    <a href="/" class="logo" aria-label="Neuro Sistema — início"><%- include('partials/logo') %></a>
+    <nav class="menu" aria-label="Seções da página">
+      <a href="#inicio" class="ativo">Início</a>
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#beneficios">Benefícios</a>
+      <a href="#quem-usa">Quem usa</a>
+      <a href="#planos">Planos</a>
+    </nav>
+    <div class="topo-acoes">
+      <a href="/login" class="btn btn-texto"><%- icone('log-in') %> Entrar</a>
+      <a href="#demonstracao" class="btn btn-primario">Solicitar Demonstração</a>
+    </div>
+    <details class="menu-mobile">
+      <summary aria-label="Abrir menu"><%- icone('menu') %></summary>
+      <div class="menu-mobile-painel">
+        <a href="#inicio">Início</a>
+        <a href="#funcionalidades">Funcionalidades</a>
+        <a href="#beneficios">Benefícios</a>
+        <a href="#quem-usa">Quem usa</a>
+        <a href="#planos">Planos</a>
+        <a href="/login">Entrar no sistema</a>
+        <a href="#demonstracao" class="btn btn-primario">Solicitar Demonstração</a>
+      </div>
+    </details>
+  </div>
+</header>
+
+<main>
+  <!-- ===================== destaque ===================== -->
+  <section class="hero" id="inicio">
+    <div class="container hero-grade">
+      <div class="hero-texto">
+        <h1>Gestão e monitoramento do desenvolvimento <span>neurodivergente</span></h1>
+        <p class="hero-sub">Um sistema completo para acompanhar, planejar intervenções e avaliar a evolução de crianças neurodivergentes, como autismo (TEA), TDAH, TOD, dislexia e outras condições.</p>
+        <div class="hero-botoes">
+          <a href="#demonstracao" class="btn btn-primario btn-grande">Solicitar Demonstração <%- icone('arrow-right') %></a>
+          <a href="#como-funciona" class="btn btn-contorno btn-grande"><%- icone('play') %> Ver como funciona</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-foto">
+          <img src="/img/site/crianca.jpg" width="438" height="496" alt="Criança sorrindo segurando um coração de quebra-cabeça colorido, símbolo da neurodiversidade">
+        </div>
+        <ul class="selos" aria-label="Principais recursos">
+          <li><span class="selo-icone"><%- icone('chart-no-axes-column-increasing') %></span> Acompanhamento da evolução</li>
+          <li><span class="selo-icone"><%- icone('calendar-days') %></span> Planos de intervenção (PEI)</li>
+          <li><span class="selo-icone"><%- icone('users') %></span> Integração multidisciplinar</li>
+          <li><span class="selo-icone"><%- icone('file-text') %></span> Relatórios e indicadores</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== faixa de recursos ===================== -->
+  <section class="container faixa" aria-label="O que o Neuro Sistema faz">
+    <div class="faixa-item">
+      <span class="faixa-icone"><%- icone('monitor') %></span>
+      <h2>Organiza o atendimento</h2>
+      <p>Registre avaliações, atividades e intervenções em um só lugar.</p>
+    </div>
+    <div class="faixa-item">
+      <span class="faixa-icone"><%- icone('trending-up') %></span>
+      <h2>Monitora o progresso</h2>
+      <p>Acompanhe a evolução com indicadores claros e confiáveis.</p>
+    </div>
+    <div class="faixa-item">
+      <span class="faixa-icone"><%- icone('users') %></span>
+      <h2>Integra a equipe</h2>
+      <p>Conecte psicólogos, terapeutas, fonoaudiólogos, pedagogos e demais profissionais.</p>
+    </div>
+    <div class="faixa-item">
+      <span class="faixa-icone"><%- icone('landmark') %></span>
+      <h2>Ideal para a rede pública</h2>
+      <p>Atende escolas, secretarias de educação e saúde e centros de atendimento (CAPS, CER etc.).</p>
+    </div>
+  </section>
+
+  <!-- ===================== por que escolher ===================== -->
+  <section class="secao" id="beneficios">
+    <div class="container porque">
+      <div class="dispositivos" aria-hidden="true">
+        <div class="notebook">
+          <div class="notebook-tela"><img src="/img/site/sistema-dashboard.jpg" width="1280" height="800" alt="" loading="lazy"></div>
+          <div class="notebook-base"></div>
+        </div>
+        <div class="celular"><img src="/img/site/sistema-celular.jpg" width="420" height="851" alt="" loading="lazy"></div>
+      </div>
+      <div class="porque-texto">
+        <h2 class="titulo">Por que escolher o <span>Neuro Sistema?</span></h2>
+        <ul class="checklist">
+          <li><span class="check"><%- icone('check') %></span> Centraliza as informações de cada criança e da equipe que a acompanha</li>
+          <li><span class="check"><%- icone('check') %></span> Registra planos de intervenção (PEI) e a evolução observada em cada atendimento</li>
+          <li><span class="check"><%- icone('check') %></span> Gera relatórios em PDF por período e por especialidade</li>
+          <li><span class="check"><%- icone('check') %></span> Apoia a tomada de decisão com indicadores da rede</li>
+          <li><span class="check"><%- icone('check') %></span> Mais inclusão, autonomia e resultados reais</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== funcionalidades ===================== -->
+  <section class="secao secao-clara" id="funcionalidades">
+    <div class="container">
+      <p class="sobretitulo">Funcionalidades</p>
+      <h2 class="titulo">Tudo o que a equipe precisa, <span>em um só sistema</span></h2>
+      <div class="cartoes">
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('chart-no-axes-column-increasing') %></span>
+          <h3>Painel de cada profissional</h3>
+          <p>Cada profissional entra com login próprio e vê só as crianças sob seus cuidados, com alertas de quem está sem avaliação ou sem atendimento há mais de 30 dias.</p>
+        </article>
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('trending-up') %></span>
+          <h3>Dashboard da rede</h3>
+          <p>Números por condição, faixa etária, nível de suporte, escola e bairro, além de atendimentos por mês e cobertura por especialidade. Tudo anônimo.</p>
+        </article>
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('clipboard-list') %></span>
+          <h3>Histórico de acompanhamento</h3>
+          <p>Avaliações, sessões, orientações à família, reuniões com a escola e planos de intervenção (PEI), com a evolução registrada em cada atendimento.</p>
+        </article>
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('upload') %></span>
+          <h3>Importação de planilhas</h3>
+          <p>Traga o levantamento que a secretaria já tem em Excel ou CSV. O sistema reconhece as colunas e mostra uma prévia antes de gravar.</p>
+        </article>
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('file-text') %></span>
+          <h3>Relatórios em PDF</h3>
+          <p>Relatório da criança por período e especialidade, pronto para reuniões, famílias e encaminhamentos, com identificação de quem emitiu.</p>
+        </article>
+        <article class="cartao">
+          <span class="cartao-icone"><%- icone('shield-check') %></span>
+          <h3>Proteção de dados (LGPD)</h3>
+          <p>Dados pessoais criptografados, registros sigilosos por especialidade, termo de confidencialidade e trilha de auditoria de todos os acessos.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== como funciona ===================== -->
+  <section class="secao" id="como-funciona">
+    <div class="container">
+      <p class="sobretitulo">Como funciona</p>
+      <h2 class="titulo">Do levantamento ao acompanhamento <span>em quatro passos</span></h2>
+      <ol class="passos">
+        <li><span class="passo-num">1</span><h3>Importe o levantamento</h3><p>A secretaria envia a planilha de crianças que já possui. Nada é gravado sem conferência.</p></li>
+        <li><span class="passo-num">2</span><h3>Monte as equipes</h3><p>Cada criança recebe os profissionais que vão acompanhá-la. Só eles têm acesso à ficha.</p></li>
+        <li><span class="passo-num">3</span><h3>Registre os atendimentos</h3><p>Cada profissional registra avaliações, sessões e a evolução observada, com opção de sigilo.</p></li>
+        <li><span class="passo-num">4</span><h3>Acompanhe os resultados</h3><p>Painéis, alertas e relatórios em PDF mostram o progresso de cada criança e da rede.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===================== quem usa ===================== -->
+  <section class="secao secao-clara" id="quem-usa">
+    <div class="container quem">
+      <div>
+        <p class="sobretitulo">Quem usa</p>
+        <h2 class="titulo">Feito para a <span>rede pública</span> e equipes multiprofissionais</h2>
+        <p class="texto-apoio">Neuropedagogos, psicopedagogos, psicólogos, fonoaudiólogos, nutricionistas, terapeutas ocupacionais, professores de AEE e demais profissionais trabalham no mesmo sistema, cada um com seu acesso.</p>
+      </div>
+      <ul class="publicos">
+        <li><span><%- icone('landmark') %></span> Secretarias de Educação</li>
+        <li><span><%- icone('heart-handshake') %></span> Secretarias de Saúde e de Inclusão</li>
+        <li><span><%- icone('school') %></span> Escolas e salas de AEE</li>
+        <li><span><%- icone('hospital') %></span> CAPS, CER e centros de atendimento</li>
+        <li><span><%- icone('users') %></span> Clínicas e equipes multiprofissionais</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== segurança ===================== -->
+  <section class="secao">
+    <div class="container seguranca">
+      <span class="seguranca-icone"><%- icone('lock') %></span>
+      <div>
+        <h2 class="titulo titulo-menor">Dados de crianças pedem <span>cuidado redobrado</span></h2>
+        <p class="texto-apoio">O Neuro Sistema foi construído seguindo a LGPD: dados pessoais criptografados, dashboards apenas com números anônimos, conteúdo clínico restrito à equipe de cada criança e registro de cada acesso.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== planos ===================== -->
+  <section class="secao secao-clara" id="planos">
+    <div class="container planos">
+      <div>
+        <p class="sobretitulo">Planos</p>
+        <h2 class="titulo">Uma proposta <span>sob medida</span> para a sua rede</h2>
+        <p class="texto-apoio">O plano é definido conforme o número de crianças acompanhadas e de profissionais. Solicite uma demonstração e receba uma proposta para o seu município ou instituição.</p>
+      </div>
+      <ul class="plano-inclui">
+        <li><span class="check"><%- icone('check') %></span> Usuários para toda a equipe, cada um com login próprio</li>
+        <li><span class="check"><%- icone('check') %></span> Importação do levantamento existente</li>
+        <li><span class="check"><%- icone('check') %></span> Dashboards, painéis individuais e relatórios em PDF</li>
+        <li><span class="check"><%- icone('check') %></span> Atualizações do sistema incluídas</li>
+        <li><a href="#demonstracao" class="btn btn-primario">Quero uma proposta <%- icone('arrow-right') %></a></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===================== demonstração ===================== -->
+  <section class="secao" id="demonstracao">
+    <div class="container demo">
+      <div>
+        <p class="sobretitulo">Demonstração</p>
+        <h2 class="titulo">Veja o Neuro Sistema <span>funcionando</span></h2>
+        <p class="texto-apoio">Preencha seus dados e nossa equipe entra em contato para agendar uma apresentação com dados fictícios.</p>
+      </div>
+      <form class="form" method="post" action="/demonstracao#demonstracao">
+        <% if (enviado) { %><div class="form-aviso ok" role="status">Pedido recebido! Entraremos em contato em breve.</div><% } %>
+        <% if (erro) { %><div class="form-aviso erro" role="alert"><%= erro %></div><% } %>
+        <div class="form-grade">
+          <label>Nome completo<input type="text" name="nome" value="<%= form.nome || '' %>" autocomplete="name" required maxlength="120"></label>
+          <label>Cargo ou função<input type="text" name="cargo" value="<%= form.cargo || '' %>" maxlength="80"></label>
+          <label>Instituição<input type="text" name="instituicao" value="<%= form.instituicao || '' %>" required maxlength="120" placeholder="Ex.: Secretaria de Educação"></label>
+          <label>Município / UF<input type="text" name="municipio" value="<%= form.municipio || '' %>" maxlength="80"></label>
+          <label>E-mail<input type="email" name="email" value="<%= form.email || '' %>" autocomplete="email" required maxlength="120"></label>
+          <label>Telefone ou WhatsApp<input type="tel" name="telefone" value="<%= form.telefone || '' %>" autocomplete="tel" maxlength="30"></label>
+        </div>
+        <label>Mensagem (opcional)<textarea name="mensagem" rows="3" maxlength="1000"><%= form.mensagem || '' %></textarea></label>
+        <label class="campo-oculto" aria-hidden="true">Não preencha<input type="text" name="site" tabindex="-1" autocomplete="off"></label>
+        <label class="form-check"><input type="checkbox" name="consentimento" value="sim" required> Autorizo o uso destes dados apenas para contato sobre a demonstração, conforme a LGPD.</label>
+        <button type="submit" class="btn btn-primario btn-grande"><%- icone('send') %> Solicitar Demonstração</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================== chamada final ===================== -->
+  <section class="chamada">
+    <span class="chamada-peca" aria-hidden="true"><%- icone('puzzle') %></span>
+    <div class="container chamada-linha">
+      <div>
+        <h2>Transforme o atendimento neurodivergente em resultados concretos.</h2>
+        <p>Mais organização, acompanhamento e inclusão.</p>
+      </div>
+      <a href="#demonstracao" class="btn btn-claro btn-grande"><%- icone('calendar-days') %> Solicitar Demonstração Gratuita <%- icone('arrow-right') %></a>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="container rodape-linha">
+    <a href="/" class="logo" aria-label="Neuro Sistema — início"><%- include('partials/logo') %></a>
+    <nav aria-label="Rodapé">
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#quem-usa">Quem usa</a>
+      <a href="/privacidade">Privacidade e LGPD</a>
+      <a href="/login">Área restrita</a>
+    </nav>
+    <p>© <%= new Date().getFullYear() %> Neuro Sistema</p>
+  </div>
+</footer>
+</body>
+</html>

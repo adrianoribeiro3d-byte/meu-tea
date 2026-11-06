@@ -151,6 +151,20 @@ CREATE TABLE IF NOT EXISTS auditoria (
   criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS ix_auditoria_data ON auditoria(criado_em);
+
+-- Pedidos de demonstração enviados pela página institucional (contatos cifrados)
+CREATE TABLE IF NOT EXISTS solicitacoes (
+  id INTEGER PRIMARY KEY,
+  nome_cifrado TEXT NOT NULL,
+  email_cifrado TEXT NOT NULL,
+  telefone_cifrado TEXT,
+  cargo TEXT,
+  instituicao TEXT NOT NULL,
+  municipio TEXT,
+  mensagem_cifrada TEXT,
+  atendida INTEGER NOT NULL DEFAULT 0,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
 CREATE TRIGGER IF NOT EXISTS auditoria_sem_update BEFORE UPDATE ON auditoria
 BEGIN SELECT RAISE(ABORT, 'A trilha de auditoria não pode ser alterada'); END;
 CREATE TRIGGER IF NOT EXISTS auditoria_sem_delete BEFORE DELETE ON auditoria

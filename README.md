@@ -9,6 +9,13 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 - **Registro de acompanhamento** por profissional, com evolução (avançou / manteve / regrediu) e opção de sigilo.
 - **Relatório com o histórico de acompanhamento**, filtrável por período e especialidade, com o botão **Baixar PDF**. O arquivo sai com marca d'água “CONFIDENCIAL”, numeração de páginas e identificação de quem o emitiu. A exportação fica registrada na auditoria.
 
+## Página inicial (site institucional)
+
+Quem acessa o endereço do sistema sem estar logado vê a página de apresentação do Neuro Sistema, com o botão **Entrar** para os profissionais.
+- O formulário **Solicitar demonstração** grava os pedidos com os contatos criptografados.
+- A Secretaria vê os pedidos em **Administração → Pedidos de demonstração**.
+- Fonte Outfit (licença OFL) e ícones Lucide (licença ISC) ficam hospedados no próprio sistema.
+
 ## Proteção de dados (LGPD)
 
 | Medida | Como funciona |

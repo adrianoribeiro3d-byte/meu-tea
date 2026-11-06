@@ -205,3 +205,26 @@ test('relatório em PDF respeita o perfil de quem exporta', async () => {
   const semVinculo = await entrar('nutripdf@t');
   assert.strictEqual((await semVinculo.get(`/criancas/${idC}/relatorio.pdf`)).status, 404, 'sem vínculo não exporta');
 });
+
+test('página institucional e pedido de demonstração', async () => {
+  let r = await fetch(base + '/', { redirect: 'manual' });
+  assert.strictEqual(r.status, 200, 'visitante vê a página inicial');
+  const html = await r.text();
+  assert.ok(html.includes('Gestão e monitoramento do desenvolvimento') && html.includes('href="/login"'));
+  const enviar = (dados) => fetch(base + '/demonstracao', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
+  const dados = { nome: 'Maria Contato', instituicao: 'Secretaria de Educação', email: 'maria@prefeitura.gov.br', telefone: '(00) 90000-0000', consentimento: 'sim' };
+  assert.strictEqual((await enviar({ ...dados, consentimento: '' })).status, 400, 'sem autorização não envia');
+  r = await enviar(dados);
+  assert.strictEqual(r.status, 303);
+  const linha = db.prepare('SELECT * FROM solicitacoes ORDER BY id DESC').get();
+  assert.strictEqual(linha.instituicao, 'Secretaria de Educação');
+  assert.ok(!JSON.stringify(linha).includes('maria@prefeitura'), 'contato gravado cifrado');
+  const antes = db.prepare('SELECT COUNT(*) AS n FROM solicitacoes').get().n;
+  await enviar({ ...dados, site: 'http://spam' });
+  assert.strictEqual(db.prepare('SELECT COUNT(*) AS n FROM solicitacoes').get().n, antes, 'robô (campo-armadilha) é ignorado');
+  criarUsuario('admsite@t', 'admin');
+  const adm = await entrar('admsite@t');
+  assert.ok((await (await adm.get('/solicitacoes')).text()).includes('maria@prefeitura.gov.br'));
+  const prof = await entrar('fono@t');
+  assert.strictEqual((await prof.get('/solicitacoes')).status, 403);
+});

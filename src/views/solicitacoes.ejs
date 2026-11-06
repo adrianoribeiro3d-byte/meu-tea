@@ -1,0 +1,22 @@
+<%- include('partials/topo', { titulo: 'Pedidos de demonstração' }) %>
+<div class="cabecalho"><div><h1>Pedidos de demonstração</h1><p class="sub">Contatos enviados pela página inicial do site</p></div></div>
+<div class="cartao">
+  <% if (!lista.length) { %><p class="muted">Nenhum pedido recebido ainda.</p><% } else { %>
+  <div class="tabela-wrap"><table>
+    <thead><tr><th>Recebido em</th><th>Contato</th><th>Instituição</th><th>Mensagem</th><th></th></tr></thead>
+    <tbody>
+    <% lista.forEach(function (s) { %>
+      <tr style="<%= s.atendida ? 'opacity:.55' : '' %>">
+        <td class="pequeno" style="white-space:nowrap"><%= fmtDataHora(s.criado_em) %><% if (!s.atendida) { %><br><span class="etiqueta azul">novo</span><% } %></td>
+        <td><strong><%= s.nome %></strong><% if (s.cargo) { %><br><span class="muted pequeno"><%= s.cargo %></span><% } %><br><a href="mailto:<%= s.email %>"><%= s.email %></a><% if (s.telefone) { %><br><%= s.telefone %><% } %></td>
+        <td><%= s.instituicao %><% if (s.municipio) { %><br><span class="muted pequeno"><%= s.municipio %></span><% } %></td>
+        <td class="pequeno" style="max-width:320px;white-space:pre-wrap"><%= s.mensagem || '—' %></td>
+        <td class="num"><form method="post" action="/solicitacoes/<%= s.id %>/atendida"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="atendida" value="<%= s.atendida ? 0 : 1 %>"><button class="pequeno" type="submit"><%= s.atendida ? 'Reabrir' : 'Marcar como atendido' %></button></form></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table></div>
+  <% } %>
+  <p class="nota">Os dados de contato ficam criptografados e foram enviados com autorização para uso apenas no contato sobre a demonstração.</p>
+</div>
+<%- include('partials/rodape') %>

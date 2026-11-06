@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../db');
-const { conferirSenha, hashSenha, validarSenha } = require('../seguranca');
+const { conferirSenha, hashSenha, validarSenha, cifrar } = require('../seguranca');
 const auth = require('../auth');
 const crypto = require('crypto');
 const { versaoTermo, tokenInstalacao } = require('../config');
@@ -20,6 +20,32 @@ function limiteIp(ip) {
 }
 
 const semUsuarios = () => !db.prepare('SELECT 1 FROM usuarios LIMIT 1').get();
+
+// ---------- Página institucional (visitantes) ----------
+// Quem já entrou no sistema segue para o painel; os demais veem a apresentação do produto.
+r.get('/', (req, res, next) => {
+  if (req.usuario) return next();
+  res.render('site', { enviado: req.query.enviado === '1', erro: null, form: {} });
+});
+
+r.post('/demonstracao', (req, res) => {
+  const t = (v, max) => String(v || '').trim().slice(0, max);
+  const form = {
+    nome: t(req.body.nome, 120), cargo: t(req.body.cargo, 80), instituicao: t(req.body.instituicao, 120), municipio: t(req.body.municipio, 80),
+    email: t(req.body.email, 120).toLowerCase(), telefone: t(req.body.telefone, 30), mensagem: t(req.body.mensagem, 1000),
+  };
+  const falha = (erro) => res.status(400).render('site', { enviado: false, erro, form });
+  if (req.body.site) return res.redirect(303, '/?enviado=1#demonstracao'); // campo-armadilha preenchido: robô
+  if (limiteIp(auth.ipDe(req))) return falha('Muitos envios em pouco tempo. Tente novamente mais tarde.');
+  if (form.nome.length < 3) return falha('Informe seu nome completo.');
+  if (form.instituicao.length < 3) return falha('Informe a instituição.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) return falha('Informe um e-mail válido.');
+  if (req.body.consentimento !== 'sim') return falha('Para enviarmos o contato, marque a autorização de uso dos dados.');
+  db.prepare(`INSERT INTO solicitacoes (nome_cifrado, email_cifrado, telefone_cifrado, cargo, instituicao, municipio, mensagem_cifrada)
+              VALUES (?, ?, ?, ?, ?, ?, ?)`)
+    .run(cifrar(form.nome), cifrar(form.email), cifrar(form.telefone), form.cargo || null, form.instituicao, form.municipio || null, cifrar(form.mensagem));
+  res.redirect(303, '/?enviado=1#demonstracao');
+});
 
 // ---------- Instalação: cria o primeiro administrador pelo navegador ----------
 // Só funciona enquanto não existe nenhum usuário e exige a palavra-chave definida

@@ -55,6 +55,7 @@ app.use('/criancas', require('./routes/criancas'));
 app.use('/importar', require('./routes/importacao'));
 app.use('/usuarios', require('./routes/usuarios'));
 app.use('/auditoria', require('./routes/auditoria'));
+app.use('/solicitacoes', require('./routes/solicitacoes'));
 
 app.use((req, res) => res.status(404).render('erro', { titulo: 'Página não encontrada', mensagem: 'O endereço acessado não existe.' }));
 // eslint-disable-next-line no-unused-vars
