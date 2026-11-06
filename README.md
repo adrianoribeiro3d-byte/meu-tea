@@ -35,9 +35,9 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 | Profissionais | **Meu painel** (+ panorama geral anônimo) | só as vinculadas | vê e registra | — |
 | Gestor | Dashboard geral (anônimo) | — | — | — |
 
-## Colocar no ar na Hostinger (planos Business ou Cloud)
+## Colocar no ar na Hostinger (planos Unlimited Web Hosting ou Cloud)
 
-O plano Premium de hospedagem de sites não roda aplicações Node.js. É preciso o **Business** ou um dos **Cloud**.
+Os planos de entrada da hospedagem de sites não rodam aplicações Node.js. É preciso o **Unlimited Web Hosting** ou um dos **Cloud**: confira se o plano lista "aplicações Node.js" entre os recursos.
 
 1. No hPanel: **Sites → Adicionar site → Aplicativo web Node.js → Importar repositório Git**. Clique em **Conectar com o GitHub** e autorize o repositório `meu-tea`.
 2. Se a Hostinger perguntar a localização do servidor, escolha **Brasil**. Os dados ficam no país, o que é o recomendado pela LGPD.
