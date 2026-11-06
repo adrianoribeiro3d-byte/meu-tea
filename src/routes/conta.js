@@ -2,7 +2,8 @@ const express = require('express');
 const db = require('../db');
 const { conferirSenha, hashSenha, validarSenha } = require('../seguranca');
 const auth = require('../auth');
-const { versaoTermo } = require('../config');
+const crypto = require('crypto');
+const { versaoTermo, tokenInstalacao } = require('../config');
 
 const r = express.Router();
 const MAX_TENTATIVAS = 5;
@@ -18,8 +19,46 @@ function limiteIp(ip) {
   return t.length > 30;
 }
 
+const semUsuarios = () => !db.prepare('SELECT 1 FROM usuarios LIMIT 1').get();
+
+// ---------- Instalação: cria o primeiro administrador pelo navegador ----------
+// Só funciona enquanto não existe nenhum usuário e exige a palavra-chave definida
+// na variável MEUTEA_TOKEN_INSTALACAO (assim um visitante qualquer não toma o sistema).
+function tokenConfere(enviado) {
+  const a = Buffer.from(String(enviado || ''));
+  const b = Buffer.from(tokenInstalacao);
+  return b.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+r.get('/instalacao', (req, res) => {
+  if (!semUsuarios()) return res.redirect('/login');
+  res.render('instalacao', { erro: null, form: {}, semToken: !tokenInstalacao });
+});
+
+r.post('/instalacao', (req, res) => {
+  if (!semUsuarios()) return res.redirect('/login');
+  const form = { nome: String(req.body.nome || '').trim(), email: String(req.body.email || '').trim().toLowerCase() };
+  const falha = (erro) => res.status(400).render('instalacao', { erro, form, semToken: !tokenInstalacao });
+  if (limiteIp(auth.ipDe(req))) return falha('Muitas tentativas. Aguarde alguns minutos.');
+  if (!tokenConfere(req.body.token)) {
+    auth.auditar(req, 'instalacao_token_invalido');
+    return falha('Palavra-chave de instalação incorreta.');
+  }
+  if (form.nome.length < 3) return falha('Informe o nome completo.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) return falha('E-mail inválido.');
+  if (req.body.senha !== req.body.confirmacao) return falha('A confirmação não confere com a senha.');
+  const erroSenha = validarSenha(req.body.senha);
+  if (erroSenha) return falha(erroSenha);
+  const info = db.prepare(`INSERT INTO usuarios (nome, email, senha_hash, perfil, trocar_senha) VALUES (?, ?, ?, 'admin', 0)`)
+    .run(form.nome, form.email, hashSenha(req.body.senha));
+  auth.auditar(req, 'instalacao_concluida', { usuario: { id: Number(info.lastInsertRowid), nome: form.nome } });
+  res.redirect('/login?instalado=1');
+});
+
 r.get('/login', (req, res) => {
   if (req.usuario) return res.redirect('/');
+  if (semUsuarios()) return res.redirect('/instalacao');
+  if (req.query.instalado) return res.render('login', { erro: null, email: '', aviso: 'Administrador criado. Entre com o e-mail e a senha que você definiu.' });
   res.render('login', { erro: null, email: '' });
 });
 

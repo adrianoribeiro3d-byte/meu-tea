@@ -1,10 +1,45 @@
 const path = require('path');
-const Database = require('better-sqlite3');
 const { PASTA_DADOS } = require('./config');
 
-const db = new Database(process.env.MEUTEA_DB || path.join(PASTA_DADOS, 'meutea.db'));
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const arquivo = process.env.MEUTEA_DB || path.join(PASTA_DADOS, 'meutea.db');
+
+/**
+ * Usa o better-sqlite3 quando ele está instalado; senão, o SQLite embutido no Node.js 22.5+ (node:sqlite).
+ * Assim o sistema roda mesmo em hospedagens onde o módulo nativo não compila.
+ * As duas opções expõem a mesma interface usada aqui: exec, prepare(...).run/get/all e transaction.
+ */
+function abrir() {
+  if (process.env.MEUTEA_SQLITE !== 'node') {
+    try {
+      const Database = require('better-sqlite3');
+      return new Database(arquivo);
+    } catch (e) {
+      console.warn('[Meu TEA] better-sqlite3 indisponível, usando o SQLite embutido do Node.js:', e.message);
+    }
+  }
+  const { DatabaseSync } = require('node:sqlite');
+  const nativo = new DatabaseSync(arquivo);
+  return {
+    exec: (sql) => nativo.exec(sql),
+    prepare: (sql) => nativo.prepare(sql),
+    transaction: (fn) => (...args) => {
+      nativo.exec('BEGIN');
+      try {
+        const r = fn(...args);
+        nativo.exec('COMMIT');
+        return r;
+      } catch (e) {
+        nativo.exec('ROLLBACK');
+        throw e;
+      }
+    },
+    close: () => nativo.close(),
+  };
+}
+
+const db = abrir();
+db.exec('PRAGMA journal_mode = WAL');
+db.exec('PRAGMA foreign_keys = ON');
 
 db.exec(`
 CREATE TABLE IF NOT EXISTS usuarios (

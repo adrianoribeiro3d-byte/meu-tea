@@ -1,0 +1,30 @@
+<%- include('partials/cabeca', { titulo: 'Instalação' }) %>
+<body>
+<main class="centro">
+  <div class="caixa-login" style="max-width:520px">
+    <div class="marca"><%- include('partials/logo') %> Meu TEA</div>
+    <p class="sub" style="text-align:center">Configuração inicial</p>
+    <div class="cartao">
+      <h1>Criar o administrador</h1>
+      <p class="sub">Esta página aparece só uma vez, enquanto o sistema não tem nenhum usuário. O administrador (Secretaria de Inclusão) cadastra depois os profissionais.</p>
+      <% if (semToken) { %>
+        <div class="aviso atencao">Para liberar esta página, crie no painel da hospedagem a variável de ambiente <strong>MEUTEA_TOKEN_INSTALACAO</strong> com uma palavra-chave só sua. Depois reinicie ou reimplante o sistema e volte aqui.</div>
+      <% } else { %>
+      <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+      <form method="post" action="/instalacao">
+        <div class="campo"><label for="token">Palavra-chave de instalação</label>
+          <input type="password" id="token" name="token" autocomplete="off" required>
+          <div class="ajuda">É o valor que você colocou em MEUTEA_TOKEN_INSTALACAO no painel da hospedagem.</div></div>
+        <div class="campo"><label for="nome">Nome completo</label><input type="text" id="nome" name="nome" value="<%= form.nome || '' %>" required></div>
+        <div class="campo"><label for="email">E-mail</label><input type="email" id="email" name="email" value="<%= form.email || '' %>" autocomplete="username" required></div>
+        <div class="campo"><label for="senha">Senha</label><input type="password" id="senha" name="senha" autocomplete="new-password" minlength="10" required>
+          <div class="ajuda">Mínimo de 10 caracteres, com letras e números.</div></div>
+        <div class="campo"><label for="confirmacao">Confirme a senha</label><input type="password" id="confirmacao" name="confirmacao" autocomplete="new-password" required></div>
+        <button type="submit" class="primario" style="width:100%;justify-content:center">Criar administrador</button>
+      </form>
+      <% } %>
+    </div>
+  </div>
+</main>
+</body>
+</html>

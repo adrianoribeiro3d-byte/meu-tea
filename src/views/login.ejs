@@ -8,6 +8,7 @@
     <% if (demo) { %><div class="aviso info pequeno">Demonstração: entre com <strong>admin@meutea.demo</strong> (Secretaria) ou <strong>fono@meutea.demo</strong> (profissional).<br><%= demoSenhaPadrao ? 'Senha: demo12345678' : 'Use a senha definida na criação do ambiente.' %></div><% } %>
     <div class="cartao">
       <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+      <% if (typeof aviso !== 'undefined' && aviso) { %><div class="aviso ok" role="status"><%= aviso %></div><% } %>
       <form method="post" action="/login">
         <div class="campo">
           <label for="email">E-mail</label>

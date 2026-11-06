@@ -35,6 +35,33 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 | Profissionais | **Meu painel** (+ panorama geral anônimo) | só as vinculadas | vê e registra | — |
 | Gestor | Dashboard geral (anônimo) | — | — | — |
 
+## Colocar no ar na Hostinger (planos Business ou Cloud)
+
+O plano Premium de hospedagem de sites não roda aplicações Node.js. É preciso o **Business** ou um dos **Cloud**.
+
+1. No hPanel: **Sites → Adicionar site → Aplicativo web Node.js → Importar repositório Git**. Clique em **Conectar com o GitHub** e autorize o repositório `meu-tea`.
+2. Se a Hostinger perguntar a localização do servidor, escolha **Brasil**. Os dados ficam no país, o que é o recomendado pela LGPD.
+3. Configurações de build:
+   - versão do Node.js **22** ou mais nova;
+   - comando de instalação `npm install` (o padrão);
+   - comando de início `npm start`;
+   - arquivo de entrada, se a Hostinger pedir, `src/server.js`.
+4. **Variáveis de ambiente**:
+   | Nome | Valor |
+   |---|---|
+   | `NODE_ENV` | `production` |
+   | `TRUST_PROXY` | `1` |
+   | `MEUTEA_TOKEN_INSTALACAO` | uma palavra-chave só sua, usada uma vez no passo 6 |
+5. Clique em **Implantar** e espere o build terminar.
+6. Abra o endereço do site. Aparece a tela **Criar o administrador**: informe a palavra-chave do passo 4, o nome, o e-mail e a senha da Secretaria. A tela se bloqueia sozinha depois disso.
+7. Confira se o **SSL (HTTPS)** está ativo em hPanel → Segurança → SSL.
+
+**Onde ficam os dados.** Em produção, o banco e a chave de criptografia ficam na pasta `meutea-dados`, na pasta pessoal da hospedagem, fora da pasta do sistema. Assim nada se perde quando a Hostinger reinstala o código.
+- Faça backup dessa pasta inteira, **incluindo o arquivo `.chave-mestra`**: sem ele, os dados ficam ilegíveis.
+- Não troque nem defina `MEUTEA_MASTER_KEY` depois que houver dados.
+
+**Atualizações.** Cada alteração enviada ao GitHub (branch `main`) faz a Hostinger reconstruir o sistema automaticamente. Os dados continuam na pasta `meutea-dados`.
+
 ## Colocar no ar com um endereço fixo (Render)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/adrianoribeiro3d-byte/meu-tea)

@@ -10,6 +10,7 @@ process.env.MEUTEA_DADOS = tmp;
 process.env.MEUTEA_DB = path.join(tmp, 'teste.db');
 process.env.MEUTEA_MASTER_KEY = '11'.repeat(32);
 process.env.LGPD_MIN_GRUPO = '3';
+process.env.MEUTEA_TOKEN_INSTALACAO = 'palavra-secreta-teste';
 
 const db = require('../src/db');
 const seg = require('../src/seguranca');
@@ -44,6 +45,21 @@ before(async () => {
   base = `http://127.0.0.1:${servidor.address().port}`;
 });
 after(() => { servidor.close(); fs.rmSync(tmp, { recursive: true, force: true }); });
+
+test('instalação cria o primeiro administrador uma única vez', async () => {
+  const form = (dados) => fetch(base + '/instalacao', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
+  let r = await fetch(base + '/login', { redirect: 'manual' });
+  assert.strictEqual(r.headers.get('location'), '/instalacao', 'sem usuários, o login leva à instalação');
+  const dados = { token: 'errada', nome: 'Admin Teste', email: 'primeiro@teste.gov', senha: 'SenhaForte123', confirmacao: 'SenhaForte123' };
+  r = await form(dados);
+  assert.strictEqual(r.status, 400, 'palavra-chave errada é recusada');
+  r = await form({ ...dados, token: 'palavra-secreta-teste' });
+  assert.strictEqual(r.status, 302);
+  assert.strictEqual(db.prepare(`SELECT perfil FROM usuarios WHERE email = 'primeiro@teste.gov'`).get().perfil, 'admin');
+  r = await form({ ...dados, token: 'palavra-secreta-teste', email: 'segundo@teste.gov' });
+  assert.strictEqual(r.headers.get('location'), '/login', 'depois do primeiro usuário a instalação fica bloqueada');
+  assert.ok(!db.prepare(`SELECT 1 FROM usuarios WHERE email = 'segundo@teste.gov'`).get());
+});
 
 test('criptografia de campos e índice cego', () => {
   const c = seg.cifrar('Maria da Silva');

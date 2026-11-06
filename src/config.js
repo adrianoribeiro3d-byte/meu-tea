@@ -1,10 +1,9 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 
 const RAIZ = path.join(__dirname, '..');
-const PASTA_DADOS = process.env.MEUTEA_DADOS || path.join(RAIZ, 'data');
-fs.mkdirSync(PASTA_DADOS, { recursive: true });
 
 // Carrega .env simples (CHAVE=valor) sem dependências externas
 const arquivoEnv = path.join(RAIZ, '.env');
@@ -17,6 +16,11 @@ if (fs.existsSync(arquivoEnv)) {
 
 const producao = process.env.NODE_ENV === 'production';
 
+// Em produção os dados ficam FORA da pasta do sistema (na pasta pessoal do usuário do servidor),
+// para não serem apagados quando a hospedagem reinstala o código a cada atualização.
+const PASTA_DADOS = process.env.MEUTEA_DADOS || (producao ? path.join(os.homedir(), 'meutea-dados') : path.join(RAIZ, 'data'));
+fs.mkdirSync(PASTA_DADOS, { recursive: true, mode: 0o700 });
+
 function carregarChaveMestra() {
   const hex = process.env.MEUTEA_MASTER_KEY;
   if (hex) {
@@ -25,12 +29,12 @@ function carregarChaveMestra() {
     if (hex.length < 32) throw new Error('MEUTEA_MASTER_KEY deve ter 64 caracteres hexadecimais ou um segredo aleatório de 32+ caracteres.');
     return crypto.createHash('sha256').update(hex).digest();
   }
-  if (producao) throw new Error('Defina MEUTEA_MASTER_KEY no ambiente de produção.');
-  // Desenvolvimento: gera e guarda uma chave local
-  const arq = path.join(PASTA_DADOS, '.chave-dev');
+  // Sem a variável: gera uma chave e guarda na pasta de dados (fora da pasta do sistema).
+  // Quem puder deve preferir MEUTEA_MASTER_KEY, para manter chave e banco em lugares separados.
+  const arq = path.join(PASTA_DADOS, producao ? '.chave-mestra' : '.chave-dev');
   if (!fs.existsSync(arq)) {
     fs.writeFileSync(arq, crypto.randomBytes(32).toString('hex'), { mode: 0o600 });
-    console.warn('[Meu TEA] MEUTEA_MASTER_KEY não definida — chave de desenvolvimento criada em', arq);
+    console.warn('[Meu TEA] MEUTEA_MASTER_KEY não definida — chave criada em', arq, '(guarde uma cópia em local seguro).');
   }
   return Buffer.from(fs.readFileSync(arq, 'utf8').trim(), 'hex');
 }
@@ -44,6 +48,8 @@ module.exports = {
   minGrupo: Math.max(0, Number(process.env.LGPD_MIN_GRUPO ?? 3) || 0),
   sessaoMinutos: Number(process.env.SESSAO_MINUTOS) || 30,
   versaoTermo: '1.0',
+  // Palavra-chave que libera a página /instalacao (criação do primeiro administrador)
+  tokenInstalacao: process.env.MEUTEA_TOKEN_INSTALACAO || '',
   // Ambiente de demonstração: cria dados fictícios automaticamente e exibe aviso em todas as páginas
   demo: process.env.MEUTEA_DEMO === '1',
   demoSenha: process.env.MEUTEA_DEMO_SENHA || 'demo12345678',
