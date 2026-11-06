@@ -1,7 +1,10 @@
 const path = require('path');
-const { PASTA_DADOS } = require('./config');
+const fs = require('fs');
+const { PASTA_DADOS, variavel } = require('./config');
 
-const arquivo = process.env.MEUTEA_DB || path.join(PASTA_DADOS, 'meutea.db');
+// Instalações anteriores à troca de nome mantêm o arquivo meutea.db
+const antigo = path.join(PASTA_DADOS, 'meutea.db');
+const arquivo = variavel('DB') || (fs.existsSync(antigo) ? antigo : path.join(PASTA_DADOS, 'neuro-sistema.db'));
 
 /**
  * Usa o better-sqlite3 quando ele está instalado; senão, o SQLite embutido no Node.js 22.5+ (node:sqlite).
@@ -9,12 +12,12 @@ const arquivo = process.env.MEUTEA_DB || path.join(PASTA_DADOS, 'meutea.db');
  * As duas opções expõem a mesma interface usada aqui: exec, prepare(...).run/get/all e transaction.
  */
 function abrir() {
-  if (process.env.MEUTEA_SQLITE !== 'node') {
+  if (variavel('SQLITE') !== 'node') {
     try {
       const Database = require('better-sqlite3');
       return new Database(arquivo);
     } catch (e) {
-      console.warn('[Meu TEA] better-sqlite3 indisponível, usando o SQLite embutido do Node.js:', e.message);
+      console.warn('[Neuro Sistema] better-sqlite3 indisponível, usando o SQLite embutido do Node.js:', e.message);
     }
   }
   const { DatabaseSync } = require('node:sqlite');
@@ -153,5 +156,8 @@ BEGIN SELECT RAISE(ABORT, 'A trilha de auditoria não pode ser alterada'); END;
 CREATE TRIGGER IF NOT EXISTS auditoria_sem_delete BEFORE DELETE ON auditoria
 BEGIN SELECT RAISE(ABORT, 'A trilha de auditoria não pode ser apagada'); END;
 `);
+
+// Troca de nome (Meu TEA → Neuro Sistema): códigos antigos MT-00001 passam a NS-00001
+db.exec(`UPDATE criancas SET codigo = 'NS-' || substr(codigo, 4) WHERE codigo LIKE 'MT-%'`);
 
 module.exports = db;

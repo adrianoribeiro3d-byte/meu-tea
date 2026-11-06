@@ -50,7 +50,7 @@ r.get('/dashboard.csv', (req, res) => {
   }
   const csv = linhas.map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
   res.set('Content-Type', 'text/csv; charset=utf-8');
-  res.set('Content-Disposition', 'attachment; filename="meu-tea-indicadores.csv"');
+  res.set('Content-Disposition', 'attachment; filename="neuro-sistema-indicadores.csv"');
   res.send('﻿' + csv);
 });
 

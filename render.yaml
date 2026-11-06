@@ -2,7 +2,7 @@
 # No plano gratuito o disco não é permanente: os dados voltam ao estado inicial quando o serviço reinicia.
 services:
   - type: web
-    name: meu-tea
+    name: neuro-sistema
     runtime: node
     plan: free
     buildCommand: npm ci
@@ -15,9 +15,9 @@ services:
         value: "22"
       - key: TRUST_PROXY
         value: "1"
-      - key: MEUTEA_DEMO
+      - key: NEUROSISTEMA_DEMO
         value: "1"
-      - key: MEUTEA_MASTER_KEY
+      - key: NEUROSISTEMA_MASTER_KEY
         generateValue: true
-      - key: MEUTEA_DEMO_SENHA
+      - key: NEUROSISTEMA_DEMO_SENHA
         sync: false

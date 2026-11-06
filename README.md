@@ -1,4 +1,4 @@
-# Meu TEA
+# Neuro Sistema
 
 Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes (TEA, TDAH, dislexia, deficiência intelectual, altas habilidades e outras). Ele reúne:
 
@@ -51,25 +51,25 @@ Os planos de entrada da hospedagem de sites não rodam aplicações Node.js. É 
    |---|---|
    | `NODE_ENV` | `production` |
    | `TRUST_PROXY` | `1` |
-   | `MEUTEA_TOKEN_INSTALACAO` | uma palavra-chave só sua, usada uma vez no passo 6 |
+   | `NEUROSISTEMA_TOKEN_INSTALACAO` | uma palavra-chave só sua, usada uma vez no passo 6 |
 5. Clique em **Implantar** e espere o build terminar.
 6. Abra o endereço do site. Aparece a tela **Criar o administrador**: informe a palavra-chave do passo 4, o nome, o e-mail e a senha da Secretaria. A tela se bloqueia sozinha depois disso.
 7. Confira se o **SSL (HTTPS)** está ativo em hPanel → Segurança → SSL.
 
-**Onde ficam os dados.** Em produção, o banco e a chave de criptografia ficam na pasta `meutea-dados`, na pasta pessoal da hospedagem, fora da pasta do sistema. Assim nada se perde quando a Hostinger reinstala o código.
+**Onde ficam os dados.** Em produção, o banco e a chave de criptografia ficam na pasta `neuro-sistema-dados`, na pasta pessoal da hospedagem, fora da pasta do sistema. Assim nada se perde quando a Hostinger reinstala o código.
 - Faça backup dessa pasta inteira, **incluindo o arquivo `.chave-mestra`**: sem ele, os dados ficam ilegíveis.
-- Não troque nem defina `MEUTEA_MASTER_KEY` depois que houver dados.
+- Não troque nem defina `NEUROSISTEMA_MASTER_KEY` depois que houver dados.
 
-**Atualizações.** Cada alteração enviada ao GitHub (branch `main`) faz a Hostinger reconstruir o sistema automaticamente. Os dados continuam na pasta `meutea-dados`.
+**Atualizações.** Cada alteração enviada ao GitHub (branch `main`) faz a Hostinger reconstruir o sistema automaticamente. Os dados continuam na pasta `neuro-sistema-dados`.
 
 ## Colocar no ar com um endereço fixo (Render)
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/adrianoribeiro3d-byte/meu-tea)
 
 1. Clique no botão acima e entre no Render usando **"GitHub"**. Se o Render pedir, autorize o acesso ao repositório `meu-tea`.
-2. Em **MEUTEA_DEMO_SENHA**, escolha a senha dos usuários de demonstração.
+2. Em **NEUROSISTEMA_DEMO_SENHA**, escolha a senha dos usuários de demonstração.
 3. Clique em **Deploy Blueprint** / **Apply** e espere de 3 a 5 minutos.
-4. Abra o endereço `https://meu-tea-xxxx.onrender.com` que aparece no painel do Render.
+4. Abra o endereço `https://neuro-sistema-xxxx.onrender.com` que aparece no painel do Render.
 
 Esse ambiente é uma **demonstração com dados fictícios**. No plano gratuito:
 - o sistema "adormece" depois de 15 minutos sem uso, e o primeiro acesso seguinte demora cerca de 1 minuto;
@@ -82,9 +82,9 @@ Esse ambiente é uma **demonstração com dados fictícios**. No plano gratuito:
 1. Instale o **Node.js** (versão LTS) em https://nodejs.org/pt. É uma instalação comum: basta clicar em “Avançar” até terminar.
 2. No GitHub, clique em **Code → Download ZIP** e extraia o arquivo.
 3. Abra a pasta extraída e dê dois cliques em:
-   - **Windows:** `Iniciar Meu TEA (Windows).bat`
-   - **Mac:** `Iniciar Meu TEA (Mac).command`. Na primeira vez, use o botão direito → Abrir.
-4. O navegador abre sozinho. Entre com `admin@meutea.demo` ou `fono@meutea.demo`, senha `demo12345678`.
+   - **Windows:** `Iniciar Neuro Sistema (Windows).bat`
+   - **Mac:** `Iniciar Neuro Sistema (Mac).command`. Na primeira vez, use o botão direito → Abrir.
+4. O navegador abre sozinho. Entre com `admin@neurosistema.demo` ou `fono@neurosistema.demo`, senha `demo12345678`.
 
 Para encerrar, feche a janela preta.
 
@@ -95,7 +95,7 @@ Para encerrar, feche a janela preta.
 1. Clique no botão acima e depois em **Create codespace**.
 2. Aguarde de 2 a 3 minutos enquanto tudo é instalado e os dados fictícios de demonstração são criados.
 3. O sistema abre sozinho em uma nova aba. Se isso não acontecer, abra a aba **PORTS** (Portas), na parte de baixo, e clique no ícone de globo da porta 3000.
-4. Entre com `admin@meutea.demo` ou `fono@meutea.demo`. A senha é `demo12345678`.
+4. Entre com `admin@neurosistema.demo` ou `fono@neurosistema.demo`. A senha é `demo12345678`.
 
 O endereço é privado: só abre para a sua conta do GitHub. Quando terminar, feche o codespace em https://github.com/codespaces para não gastar a cota gratuita.
 
@@ -109,7 +109,7 @@ npm run demo          # opcional: dados FICTÍCIOS + usuários de teste (senha d
 npm start             # http://localhost:3000
 ```
 
-Usuários de demonstração: `admin@meutea.demo`, `gestor@meutea.demo`, `psico@meutea.demo`, `fono@meutea.demo`, `nutri@meutea.demo`, `neuro@meutea.demo`, `to@meutea.demo`, `psicoped@meutea.demo`, `aee@meutea.demo`.
+Usuários de demonstração: `admin@neurosistema.demo`, `gestor@neurosistema.demo`, `psico@neurosistema.demo`, `fono@neurosistema.demo`, `nutri@neurosistema.demo`, `neuro@neurosistema.demo`, `to@neurosistema.demo`, `psicoped@neurosistema.demo`, `aee@neurosistema.demo`.
 
 Para testar a importação, use `npm run planilha-exemplo`, que gera `exemplos/planilha-exemplo.xlsx`, ou baixe o modelo em **Importar planilha → Baixar modelo**.
 

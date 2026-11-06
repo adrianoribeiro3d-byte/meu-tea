@@ -1,7 +1,7 @@
 {
-  "name": "meu-tea",
+  "name": "neuro-sistema",
   "version": "1.0.0",
-  "description": "Meu TEA — dashboard e acompanhamento multiprofissional de crianças neurodivergentes, em conformidade com a LGPD",
+  "description": "Neuro Sistema — dashboard e acompanhamento multiprofissional de crianças neurodivergentes, em conformidade com a LGPD",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

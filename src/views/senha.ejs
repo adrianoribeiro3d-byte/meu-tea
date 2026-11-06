@@ -1,5 +1,5 @@
 <% const completo = !usuario.trocar_senha && usuario.termo_versao; %>
-<% if (completo) { %><%- include('partials/topo', { titulo: 'Alterar senha' }) %><% } else { %><%- include('partials/cabeca', { titulo: 'Alterar senha' }) %><body><main class="centro"><div class="caixa-login"><div class="marca"><%- include('partials/logo') %> Meu TEA</div><% } %>
+<% if (completo) { %><%- include('partials/topo', { titulo: 'Alterar senha' }) %><% } else { %><%- include('partials/cabeca', { titulo: 'Alterar senha' }) %><body><main class="centro"><div class="caixa-login"><div class="marca"><%- include('partials/logo') %></div><% } %>
 <div class="cartao" style="max-width:480px">
   <h1>Alterar senha</h1>
   <% if (usuario.trocar_senha) { %><p class="sub">Por segurança, defina uma senha pessoal antes do primeiro acesso.</p><% } %>

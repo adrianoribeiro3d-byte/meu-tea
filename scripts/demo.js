@@ -1,5 +1,5 @@
 // Popula o banco com dados FICTÍCIOS para demonstração. Uso: npm run demo
-// Também é usado automaticamente quando MEUTEA_DEMO=1 (ver src/server.js).
+// Também é usado automaticamente quando NEUROSISTEMA_DEMO=1 (ver src/server.js).
 // Nunca cadastre dados reais em um ambiente de demonstração.
 const db = require('../src/db');
 const { hashSenha, cifrar } = require('../src/seguranca');
@@ -15,15 +15,15 @@ function popular(senha = 'demo12345678') {
 
   const SENHA = senha;
   const usuarios = [
-    ['Ana Secretaria (demo)', 'admin@meutea.demo', 'admin', null],
-    ['Gustavo Gestor (demo)', 'gestor@meutea.demo', 'gestor', null],
-    ['Beatriz Neuropedagoga (demo)', 'neuro@meutea.demo', 'neuropedagogo', 'ABPp 0000'],
-    ['Carlos Psicólogo (demo)', 'psico@meutea.demo', 'psicologo', 'CRP 00/00000'],
-    ['Daniela Fonoaudióloga (demo)', 'fono@meutea.demo', 'fonoaudiologo', 'CRFa 0-00000'],
-    ['Eduardo Nutricionista (demo)', 'nutri@meutea.demo', 'nutricionista', 'CRN-0 00000'],
-    ['Fernanda Terapeuta Ocupacional (demo)', 'to@meutea.demo', 'terapeuta_ocupacional', 'CREFITO 00000-TO'],
-    ['Helena Psicopedagoga (demo)', 'psicoped@meutea.demo', 'psicopedagogo', 'ABPp 0001'],
-    ['Igor Professor AEE (demo)', 'aee@meutea.demo', 'professor_aee', null],
+    ['Ana Secretaria (demo)', 'admin@neurosistema.demo', 'admin', null],
+    ['Gustavo Gestor (demo)', 'gestor@neurosistema.demo', 'gestor', null],
+    ['Beatriz Neuropedagoga (demo)', 'neuro@neurosistema.demo', 'neuropedagogo', 'ABPp 0000'],
+    ['Carlos Psicólogo (demo)', 'psico@neurosistema.demo', 'psicologo', 'CRP 00/00000'],
+    ['Daniela Fonoaudióloga (demo)', 'fono@neurosistema.demo', 'fonoaudiologo', 'CRFa 0-00000'],
+    ['Eduardo Nutricionista (demo)', 'nutri@neurosistema.demo', 'nutricionista', 'CRN-0 00000'],
+    ['Fernanda Terapeuta Ocupacional (demo)', 'to@neurosistema.demo', 'terapeuta_ocupacional', 'CREFITO 00000-TO'],
+    ['Helena Psicopedagoga (demo)', 'psicoped@neurosistema.demo', 'psicopedagogo', 'ABPp 0001'],
+    ['Igor Professor AEE (demo)', 'aee@neurosistema.demo', 'professor_aee', null],
   ];
   const idsUsuario = {};
   for (const [nome, email, perfil, reg] of usuarios) {

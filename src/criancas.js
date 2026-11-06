@@ -21,7 +21,7 @@ function dataValida(iso) {
 function proximoCodigo() {
   const ultimo = db.prepare(`SELECT codigo FROM criancas ORDER BY id DESC LIMIT 1`).get();
   const n = ultimo ? Number(ultimo.codigo.replace(/\D/g, '')) + 1 : 1;
-  return `MT-${String(n).padStart(5, '0')}`;
+  return `NS-${String(n).padStart(5, '0')}`;
 }
 
 /** Valida e normaliza os dados vindos de formulário ou planilha. Retorna { dados, erros }. */

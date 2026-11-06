@@ -88,7 +88,7 @@ r.post('/confirmar', (req, res) => {
 
 r.get('/modelo.xlsx', async (req, res) => {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Meu TEA';
+  wb.creator = 'Neuro Sistema';
   const ws = wb.addWorksheet('Crianças');
   const cab = ['Nome da criança', 'Data de nascimento', 'Sexo', 'Condição', 'CID', 'Nível de suporte', 'Laudo', 'Escola',
     'Série/Ano', 'Turno', 'Bairro', 'AEE', 'Mediador', 'Responsável', 'Telefone', 'Consentimento', 'Data do consentimento', 'Observações'];
@@ -110,14 +110,14 @@ r.get('/modelo.xlsx', async (req, res) => {
     [''],
     ['Proteção de dados (LGPD)'],
     ['• Este arquivo contém dados pessoais sensíveis de crianças. Não envie por e-mail ou aplicativos de mensagem.'],
-    ['• Após a importação no Meu TEA, apague as cópias locais da planilha.'],
+    ['• Após a importação no Neuro Sistema, apague as cópias locais da planilha.'],
   ].forEach((l) => inst.addRow(l));
   inst.getColumn(1).width = 120;
   inst.getRow(1).font = { bold: true };
   inst.getRow(8).font = { bold: true };
 
   res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.set('Content-Disposition', 'attachment; filename="modelo-planilha-meu-tea.xlsx"');
+  res.set('Content-Disposition', 'attachment; filename="modelo-planilha-neuro-sistema.xlsx"');
   await wb.xlsx.write(res);
   res.end();
 });

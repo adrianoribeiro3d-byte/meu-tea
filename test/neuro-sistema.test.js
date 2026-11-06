@@ -5,12 +5,12 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'meutea-'));
-process.env.MEUTEA_DADOS = tmp;
-process.env.MEUTEA_DB = path.join(tmp, 'teste.db');
-process.env.MEUTEA_MASTER_KEY = '11'.repeat(32);
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'neuro-sistema-'));
+process.env.NEUROSISTEMA_DADOS = tmp;
+process.env.NEUROSISTEMA_DB = path.join(tmp, 'teste.db');
+process.env.NEUROSISTEMA_MASTER_KEY = '11'.repeat(32);
 process.env.LGPD_MIN_GRUPO = '3';
-process.env.MEUTEA_TOKEN_INSTALACAO = 'palavra-secreta-teste';
+process.env.NEUROSISTEMA_TOKEN_INSTALACAO = 'palavra-secreta-teste';
 
 const db = require('../src/db');
 const seg = require('../src/seguranca');
@@ -195,7 +195,7 @@ test('relatório em PDF respeita o perfil de quem exporta', async () => {
   const r = await prof.get(`/criancas/${idC}/relatorio.pdf`);
   assert.strictEqual(r.status, 200);
   assert.strictEqual(r.headers.get('content-type'), 'application/pdf');
-  assert.match(r.headers.get('content-disposition'), /attachment; filename="relatorio-MT-\d+-/);
+  assert.match(r.headers.get('content-disposition'), /attachment; filename="relatorio-NS-\d+-/);
   const bytes = Buffer.from(await r.arrayBuffer());
   assert.strictEqual(bytes.subarray(0, 5).toString(), '%PDF-');
   assert.ok(db.prepare(`SELECT 1 FROM auditoria WHERE acao = 'exportou_relatorio_pdf' AND entidade_id = ?`).get(idC));

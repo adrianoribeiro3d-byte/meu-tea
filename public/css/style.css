@@ -8,9 +8,12 @@
   --tinta-3: #7a8190;
   --linha: #e2e5eb;
   --linha-forte: #c9ced8;
-  --primaria: #2a5fb0;
-  --primaria-hover: #214d91;
-  --primaria-suave: #e6eefb;
+  --primaria: #004090;
+  --primaria-hover: #00336f;
+  --primaria-suave: #e3edf9;
+  /* identidade Neuro Sistema */
+  --marca-escura: #004090;
+  --marca-clara: #00a5fe;
   --sucesso: #0f7a3a;
   --sucesso-suave: #e3f4ea;
   --alerta: #8a5a00;
@@ -35,6 +38,7 @@
     --tinta: #f2f4f7; --tinta-2: #c1c6d0; --tinta-3: #8b92a0;
     --linha: #2a2f38; --linha-forte: #3a404b;
     --primaria: #6ea3ee; --primaria-hover: #8cb6f2; --primaria-suave: #1c2a42;
+    --marca-escura: #6c9ff0; --marca-clara: #2bb4ff;
     --sucesso: #4cc27a; --sucesso-suave: #13291d; --alerta: #f0bd4f; --alerta-suave: #2d2413;
     --perigo: #f07a7a; --perigo-suave: #321717;
     --sombra: 0 1px 2px rgba(0, 0, 0, .4);
@@ -50,6 +54,7 @@
   --tinta: #f2f4f7; --tinta-2: #c1c6d0; --tinta-3: #8b92a0;
   --linha: #2a2f38; --linha-forte: #3a404b;
   --primaria: #6ea3ee; --primaria-hover: #8cb6f2; --primaria-suave: #1c2a42;
+    --marca-escura: #6c9ff0; --marca-clara: #2bb4ff;
   --sucesso: #4cc27a; --sucesso-suave: #13291d; --alerta: #f0bd4f; --alerta-suave: #2d2413;
   --perigo: #f07a7a; --perigo-suave: #321717;
   --sombra: 0 1px 2px rgba(0, 0, 0, .4);
@@ -82,8 +87,13 @@ p { margin: 0 0 12px; }
   background: var(--superficie); border-right: 1px solid var(--linha);
   padding: 20px 14px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px;
 }
-.marca { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; padding: 0 8px 18px; color: var(--tinta); text-decoration: none; }
+.marca { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; padding: 0 8px 18px; color: var(--tinta); text-decoration: none; letter-spacing: -.01em; }
 .marca svg { flex: none; }
+.marca-nome { border-left: 2px solid var(--marca-clara); padding-left: 10px; line-height: 1.1; white-space: nowrap; }
+.marca-n1 { color: var(--marca-escura); }
+.marca-n2 { color: var(--marca-clara); }
+.conteudo > .faixa-demo { margin: -28px -32px 20px; }
+@media (max-width: 900px) { .conteudo > .faixa-demo { margin: -20px -16px 16px; } }
 .lateral nav a {
   display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px;
   color: var(--tinta-2); text-decoration: none; font-weight: 500;
@@ -210,7 +220,8 @@ details.tabela-dados table { margin-top: 8px; }
 /* login */
 .centro { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
 .caixa-login { width: 100%; max-width: 400px; }
-.caixa-login .marca { justify-content: center; font-size: 1.5rem; padding-bottom: 6px; }
+.caixa-login .marca { justify-content: center; font-size: 1.5rem; padding-bottom: 6px; --marca-fundo: var(--plano); }
+.caixa-login .marca svg { width: 60px; height: 30px; }
 .termo { max-height: 50vh; overflow: auto; border: 1px solid var(--linha); border-radius: 8px; padding: 16px 18px; background: var(--superficie-2); margin-bottom: 16px; }
 .termo li { margin-bottom: 6px; }
 

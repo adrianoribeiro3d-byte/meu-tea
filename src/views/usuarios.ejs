@@ -1,5 +1,5 @@
 <%- include('partials/topo', { titulo: 'Usuários' }) %>
-<div class="cabecalho"><div><h1>Usuários</h1><p class="sub">Profissionais e gestores com acesso ao Meu TEA</p></div></div>
+<div class="cabecalho"><div><h1>Usuários</h1><p class="sub">Profissionais e gestores com acesso ao Neuro Sistema</p></div></div>
 <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
 <% if (senhaGerada) { %>
   <div class="aviso ok">Senha provisória de <strong><%= senhaGerada.email %></strong>: <code style="font-size:1.1em"><%= senhaGerada.senha %></code><br>

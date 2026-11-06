@@ -70,10 +70,10 @@ if (require.main === module) {
     const db = require('./db');
     if (!db.prepare('SELECT COUNT(*) AS n FROM usuarios').get().n) {
       require('../scripts/demo')(config.demoSenha);
-      console.log('[Meu TEA] Modo demonstração: dados fictícios criados.');
+      console.log('[Neuro Sistema] Modo demonstração: dados fictícios criados.');
     }
   }
-  app.listen(config.porta, () => console.log(`Meu TEA em http://localhost:${config.porta}`));
+  app.listen(config.porta, () => console.log(`Neuro Sistema em http://localhost:${config.porta}`));
 }
 
 module.exports = app;

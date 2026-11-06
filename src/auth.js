@@ -4,7 +4,7 @@ const { token, sha256 } = require('./seguranca');
 const { producao, sessaoMinutos, versaoTermo } = require('./config');
 const { ehProfissional } = require('./dominio');
 
-const COOKIE = producao ? '__Host-meutea' : 'meutea';
+const COOKIE = producao ? '__Host-neurosistema' : 'neurosistema';
 
 function ipDe(req) {
   return req.ip || req.socket?.remoteAddress || null;

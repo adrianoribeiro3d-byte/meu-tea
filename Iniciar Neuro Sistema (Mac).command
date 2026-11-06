@@ -7,10 +7,10 @@ if ! command -v node >/dev/null 2>&1; then
   exit 1
 fi
 if [ ! -d node_modules ]; then
-  echo "Instalando o Meu TEA pela primeira vez. Isso leva alguns minutos..."
+  echo "Instalando o Neuro Sistema pela primeira vez. Isso leva alguns minutos..."
   npm install || { read -r -p "Falha na instalação. Pressione Enter para fechar..."; exit 1; }
 fi
-export MEUTEA_DEMO=1
-echo "Meu TEA iniciando... o navegador vai abrir em instantes. Para ENCERRAR, feche esta janela."
+export NEUROSISTEMA_DEMO=1
+echo "Neuro Sistema iniciando... o navegador vai abrir em instantes. Para ENCERRAR, feche esta janela."
 (sleep 4; open "http://localhost:3000") &
 npm start

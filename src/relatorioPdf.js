@@ -1,9 +1,10 @@
 // Geração do relatório de acompanhamento em PDF (A4), com marca d'água e rodapé de confidencialidade.
+const path = require('path');
 const PDFDocument = require('pdfkit');
 const { ESPECIALIDADES, TIPOS_ATENDIMENTO, EVOLUCAO, NIVEIS_SUPORTE, LAUDO, SEXOS, TURNOS } = require('./dominio');
 
-const COR = { tinta: '#14171c', suave: '#5b6270', linha: '#d9dde4', fundo: '#f1f3f6', primaria: '#2a5fb0', alerta: '#8a5a00' };
-const LOGO = 'M24 24c-4-5-7-8-11-8a8 8 0 0 0 0 16c4 0 7-3 11-8zm0 0c4 5 7 8 11 8a8 8 0 0 0 0-16c-4 0-7 3-11 8z';
+const COR = { tinta: '#14171c', suave: '#5b6270', linha: '#d9dde4', fundo: '#f1f3f6', primaria: '#004090', alerta: '#8a5a00' };
+const LOGO = path.join(__dirname, '..', 'public', 'img', 'neuro-sistema-logo.png');
 
 // As fontes padrão do PDF usam a codificação WinAnsi: troca o que ela não representa (ex.: emojis)
 const EXTRAS = '€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ';
@@ -21,7 +22,7 @@ function gerarRelatorioPdf(d, destino) {
 
   const doc = new PDFDocument({
     size: 'A4', margins: { top: 50, bottom: 70, left: 50, right: 50 }, bufferPages: true,
-    info: { Title: `Relatório de acompanhamento ${c.codigo}`, Author: 'Meu TEA', Subject: 'Documento confidencial (LGPD)' },
+    info: { Title: `Relatório de acompanhamento ${c.codigo}`, Author: 'Neuro Sistema', Subject: 'Documento confidencial (LGPD)' },
   });
   doc.pipe(destino);
   const L = doc.page.margins.left;
@@ -31,8 +32,7 @@ function gerarRelatorioPdf(d, destino) {
   const texto = (t, opts = {}) => doc.text(limpar(t), opts);
 
   // ---- cabeçalho
-  doc.save().translate(L, 46).scale(0.55).path(LOGO).lineWidth(4.5).strokeColor(COR.primaria).stroke().restore();
-  doc.font('Helvetica-Bold').fontSize(14).fillColor(COR.tinta).text('Meu TEA', L + 32, 50);
+  doc.image(LOGO, L, 46, { width: 160 });
   doc.font('Helvetica').fontSize(8.5).fillColor(COR.suave)
     .text(limpar(`Emitido em ${emitido}\npor ${usuario.nome}`), L, 50, { width: W, align: 'right' });
   doc.moveDown(1.6);
@@ -179,7 +179,7 @@ function gerarRelatorioPdf(d, destino) {
     const yR = doc.page.height - 45;
     doc.moveTo(L, yR - 6).lineTo(L + W, yR - 6).lineWidth(0.5).strokeColor(COR.linha).stroke();
     doc.font('Helvetica').fontSize(7.5).fillColor(COR.suave);
-    doc.text(limpar(`Meu TEA · ${c.codigo} · Documento confidencial (LGPD) · Emitido por ${usuario.nome} em ${emitido}`), L, yR, { width: W - 70, lineBreak: false });
+    doc.text(limpar(`Neuro Sistema · ${c.codigo} · Documento confidencial (LGPD) · Emitido por ${usuario.nome} em ${emitido}`), L, yR, { width: W - 70, lineBreak: false });
     doc.text(`Página ${i - start + 1} de ${count}`, L, yR, { width: W, align: 'right', lineBreak: false });
   }
   doc.end();

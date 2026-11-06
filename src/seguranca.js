@@ -2,6 +2,8 @@
 const crypto = require('crypto');
 const { chaveMestra } = require('./config');
 
+// Os rótulos 'meutea:…' são parâmetros fixos da derivação de chaves (nome antigo do sistema).
+// Não altere: mudá-los gera outras chaves e torna ilegíveis os dados já gravados.
 const chaveCifra = Buffer.from(crypto.hkdfSync('sha256', chaveMestra, Buffer.alloc(0), 'meutea:cifra', 32));
 const chaveIndice = Buffer.from(crypto.hkdfSync('sha256', chaveMestra, Buffer.alloc(0), 'meutea:indice', 32));
 

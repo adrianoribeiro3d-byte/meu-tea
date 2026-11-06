@@ -23,7 +23,7 @@ const semUsuarios = () => !db.prepare('SELECT 1 FROM usuarios LIMIT 1').get();
 
 // ---------- Instalação: cria o primeiro administrador pelo navegador ----------
 // Só funciona enquanto não existe nenhum usuário e exige a palavra-chave definida
-// na variável MEUTEA_TOKEN_INSTALACAO (assim um visitante qualquer não toma o sistema).
+// na variável NEUROSISTEMA_TOKEN_INSTALACAO (assim um visitante qualquer não toma o sistema).
 function tokenConfere(enviado) {
   const a = Buffer.from(String(enviado || ''));
   const b = Buffer.from(tokenInstalacao);
