@@ -210,7 +210,7 @@ test('página institucional e pedido de demonstração', async () => {
   let r = await fetch(base + '/', { redirect: 'manual' });
   assert.strictEqual(r.status, 200, 'visitante vê a página inicial');
   const html = await r.text();
-  assert.ok(html.includes('Gestão e monitoramento do desenvolvimento') && html.includes('href="/login"'));
+  assert.ok(html.includes('Gestão e monitoramento do desenvolvimento') && !html.includes('href="/login"'), 'a página não leva ao login: cada município tem seu subdomínio');
   const enviar = (dados) => fetch(base + '/demonstracao', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
   const dados = { nome: 'Maria Contato', instituicao: 'Secretaria de Educação', email: 'maria@prefeitura.gov.br', telefone: '(00) 90000-0000', consentimento: 'sim' };
   assert.strictEqual((await enviar({ ...dados, consentimento: '' })).status, 400, 'sem autorização não envia');
