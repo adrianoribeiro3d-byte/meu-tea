@@ -1,9 +1,16 @@
 <%- include('partials/topo', { titulo: 'Usuários' }) %>
 <div class="cabecalho"><div><h1>Usuários</h1><p class="sub">Profissionais e gestores com acesso ao Neuro Sistema</p></div></div>
 <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
-<% if (senhaGerada) { %>
-  <div class="aviso ok">Senha provisória de <strong><%= senhaGerada.email %></strong>: <code style="font-size:1.1em"><%= senhaGerada.senha %></code><br>
-  <span class="pequeno">Entregue pessoalmente ou por canal seguro. Ela não será exibida novamente e deverá ser trocada no primeiro acesso.</span></div>
+<% if (resultado) { const oQue = resultado.tipo === 'convite' ? 'convite de acesso' : 'link de redefinição de senha'; %>
+  <% if (resultado.falhou) { %>
+    <div class="aviso erro" role="alert">Não foi possível enviar o <%= oQue %> para <strong><%= resultado.email %></strong>. Confira o endereço e tente de novo pelo botão ao lado do nome. Se o problema continuar, avise o suporte técnico.</div>
+  <% } else if (resultado.enviado) { %>
+    <div class="aviso ok" role="status"><%= resultado.tipo === 'convite' ? 'Convite' : 'Link de redefinição de senha' %> enviado para <strong><%= resultado.email %></strong>. <%= resultado.tipo === 'convite' ? 'O acesso só funciona depois que a pessoa abrir o link e criar a própria senha (prazo de 48 horas).' : 'O link vale por 30 minutos.' %></div>
+  <% } else { %>
+    <div class="aviso atencao">O envio de e-mails ainda não está configurado neste sistema. Entregue o link abaixo a <strong><%= resultado.nome %></strong> por um canal seguro. Ele vale <%= resultado.tipo === 'convite' ? 'por 48 horas' : 'por 30 minutos' %> e só pode ser usado uma vez:<br>
+      <code style="word-break:break-all"><%= resultado.link %></code><br>
+      <span class="pequeno">Ele não será exibido novamente. Para que os links sigam direto para o e-mail de cada pessoa, peça ao suporte técnico para configurar o envio de e-mails.</span></div>
+  <% } %>
 <% } %>
 <div class="grade grade-2" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr)">
   <div class="cartao">
@@ -13,14 +20,17 @@
       <% usuarios.forEach(function (u) { %>
         <tr style="<%= u.ativo ? '' : 'opacity:.55' %>">
           <td><strong><%= u.nome %></strong><br><span class="muted pequeno"><%= u.email %><%= u.registro_profissional ? ' · ' + u.registro_profissional : '' %></span>
-            <% if (!u.ativo) { %><br><span class="etiqueta">inativo</span><% } else if (u.trocar_senha) { %><br><span class="etiqueta alerta">aguardando 1º acesso</span><% } %></td>
+            <% if (!u.ativo) { %><br><span class="etiqueta">inativo</span>
+            <% } else if (u.convite_pendente && u.convite_valido_ate) { %><br><span class="etiqueta alerta">convite pendente</span>
+            <% } else if (u.convite_pendente) { %><br><span class="etiqueta alerta">convite expirado</span>
+            <% } else if (u.trocar_senha) { %><br><span class="etiqueta alerta">aguardando 1º acesso</span><% } %></td>
           <td><%= PERFIS[u.perfil] %></td>
           <td class="num"><%= ['admin', 'gestor'].includes(u.perfil) ? '—' : u.criancas %></td>
           <td class="num"><%= ['admin', 'gestor'].includes(u.perfil) ? '—' : u.atend30 %></td>
           <td class="pequeno"><%= fmtDataHora(u.ultimo_login) %></td>
           <td class="num" style="white-space:nowrap">
             <% if (u.id !== usuario.id) { %>
-            <form method="post" action="/usuarios/<%= u.id %>/senha" style="display:inline" data-confirmar="Gerar nova senha provisória para <%= u.nome %>?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="pequeno" type="submit">Nova senha</button></form>
+            <% if (u.ativo) { %><form method="post" action="/usuarios/<%= u.id %>/link" style="display:inline" data-confirmar="<%= u.convite_pendente ? 'Reenviar o convite para ' + u.email + '? O link anterior deixa de valer.' : 'Enviar a ' + u.email + ' um link para criar uma senha nova?' %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="pequeno" type="submit"><%= u.convite_pendente ? 'Reenviar convite' : 'Redefinir senha' %></button></form><% } %>
             <form method="post" action="/usuarios/<%= u.id %>/ativo" style="display:inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="ativo" value="<%= u.ativo ? 0 : 1 %>"><button class="pequeno" type="submit"><%= u.ativo ? 'Desativar' : 'Reativar' %></button></form>
             <% } %>
           </td>
@@ -38,7 +48,8 @@
       <% Object.entries(PERFIS).forEach(function ([k, v]) { %><option value="<%= k %>" <%= form.perfil === k ? 'selected' : '' %>><%= v %></option><% }) %></select></div>
     <div class="campo"><label for="registro_profissional">Registro profissional</label><input type="text" id="registro_profissional" name="registro_profissional" value="<%= form.registro_profissional || '' %>" placeholder="ex.: CRP 06/12345, CRFa, CRN">
       <div class="ajuda">Aparece nos relatórios de acompanhamento.</div></div>
-    <button type="submit" class="primario">Criar e gerar senha provisória</button>
+    <p class="ajuda" style="margin:0 0 12px">A pessoa recebe neste e-mail um convite para criar a própria senha. O acesso só funciona depois disso.</p>
+    <button type="submit" class="primario">Cadastrar e enviar convite</button>
   </form>
 </div>
 <%- include('partials/rodape') %>

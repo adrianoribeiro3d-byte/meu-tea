@@ -6,19 +6,21 @@ const crypto = require('crypto');
 const config = require('../config');
 const { versaoTermo, tokenInstalacao } = config;
 const email = require('../email');
+const contas = require('../contas');
 
 const r = express.Router();
 const MAX_TENTATIVAS = 5;
 const BLOQUEIO_MIN = 15;
 
-// Limite simples por IP contra força bruta
+// Limite simples por IP contra força bruta, separado por tipo de formulário
 const tentativasIp = new Map();
-function limiteIp(ip) {
+function limiteIp(ip, grupo = 'login', maximo = 30) {
+  const chave = `${grupo}:${ip}`;
   const agora = Date.now();
-  const t = (tentativasIp.get(ip) || []).filter((x) => agora - x < 15 * 60 * 1000);
+  const t = (tentativasIp.get(chave) || []).filter((x) => agora - x < 15 * 60 * 1000);
   t.push(agora);
-  tentativasIp.set(ip, t);
-  return t.length > 30;
+  tentativasIp.set(chave, t);
+  return t.length > maximo;
 }
 
 const semUsuarios = () => !db.prepare('SELECT 1 FROM usuarios LIMIT 1').get();
@@ -40,7 +42,7 @@ r.post('/demonstracao', (req, res) => {
   };
   const falha = (erro) => res.status(400).render('site', { enviado: false, erro, form });
   if (req.body.site) return res.redirect(303, '/?enviado=1#demonstracao'); // campo-armadilha preenchido: robô
-  if (limiteIp(auth.ipDe(req))) return falha('Muitos envios em pouco tempo. Tente novamente mais tarde.');
+  if (limiteIp(auth.ipDe(req), 'demonstracao', 10)) return falha('Muitos envios em pouco tempo. Tente novamente mais tarde.');
   if (form.nome.length < 3) return falha('Informe seu nome completo.');
   if (form.instituicao.length < 3) return falha('Informe a instituição.');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) return falha('Informe um e-mail válido.');
@@ -91,6 +93,7 @@ r.get('/login', (req, res) => {
   if (req.usuario) return res.redirect('/');
   if (semUsuarios()) return res.redirect('/instalacao');
   if (req.query.instalado) return res.render('login', { erro: null, email: '', aviso: 'Administrador criado. Entre com o e-mail e a senha que você definiu.' });
+  if (req.query.redefinida) return res.render('login', { erro: null, email: '', aviso: 'Senha alterada. Entre com a senha nova.' });
   res.render('login', { erro: null, email: '' });
 });
 
@@ -102,7 +105,7 @@ r.post('/login', (req, res) => {
   if (limiteIp(auth.ipDe(req))) return falha('Muitas tentativas. Aguarde alguns minutos.');
 
   const u = db.prepare('SELECT * FROM usuarios WHERE email = ?').get(email);
-  if (!u || !u.ativo) {
+  if (!u || !u.ativo || u.convite_pendente) {
     auth.auditar(req, 'login_falhou', { detalhes: { email } });
     return falha('E-mail ou senha inválidos.');
   }
@@ -122,6 +125,59 @@ r.post('/login', (req, res) => {
   auth.auditar(req, 'login', { usuario: u });
   res.redirect('/');
 });
+
+// ---------- Esqueci minha senha / ativação do convite / redefinição (links de uso único por e-mail) ----------
+r.get('/esqueci', (req, res) => res.render('esqueci', { emailAtivo: email.configurado(), enviado: false, erro: null }));
+
+r.post('/esqueci', (req, res) => {
+  const emailInformado = String(req.body.email || '').trim().toLowerCase().slice(0, 120);
+  const pagina = (extra) => res.render('esqueci', { emailAtivo: email.configurado(), enviado: false, erro: null, ...extra });
+  if (!email.configurado()) return pagina({});
+  if (limiteIp(auth.ipDe(req), 'esqueci', 10)) return pagina({ erro: 'Muitas tentativas. Aguarde alguns minutos.' });
+  // A resposta é sempre a mesma, exista ou não o e-mail, para não revelar quem tem acesso ao sistema.
+  const u = db.prepare('SELECT * FROM usuarios WHERE email = ? AND ativo = 1 AND convite_pendente = 0').get(emailInformado);
+  const recente = u && db.prepare(`SELECT 1 FROM tokens_conta WHERE usuario_id = ? AND tipo = 'redefinicao' AND criado_em > datetime('now', '-2 minutes')`).get(u.id);
+  if (u && !recente) {
+    auth.auditar(req, 'redefinicao_solicitada', { usuario: u });
+    contas.enviarLink(u, 'redefinicao')
+      .catch((e) => console.error('[Neuro Sistema] Falha ao enviar o link de redefinição de senha:', e.code || e.message));
+  }
+  pagina({ enviado: true });
+});
+
+function telaLink(tipo, titulo) {
+  const exibir = (req, res, extra = {}) => {
+    const v = contas.validar(req.params.token, tipo);
+    res.status(v ? (extra.erro ? 400 : 200) : 410).render('definir-senha', {
+      tipo, titulo, valido: !!v, nome: v?.usuario.nome, email: v?.usuario.email, erro: null, ...extra,
+    });
+    return v;
+  };
+  r.get(`/conta/${tipo === 'convite' ? 'ativar' : 'redefinir'}/:token`, (req, res) => { exibir(req, res); });
+  r.post(`/conta/${tipo === 'convite' ? 'ativar' : 'redefinir'}/:token`, (req, res) => {
+    if (limiteIp(auth.ipDe(req), 'link')) return exibir(req, res, { erro: 'Muitas tentativas. Aguarde alguns minutos.' });
+    const v = contas.validar(req.params.token, tipo);
+    if (!v) return exibir(req, res);
+    const { senha, confirmacao } = req.body;
+    const erro = senha !== confirmacao ? 'A confirmação não confere com a senha.' : validarSenha(senha);
+    if (erro) return exibir(req, res, { erro });
+    const u = v.usuario;
+    db.prepare(`UPDATE usuarios SET senha_hash = ?, trocar_senha = 0, convite_pendente = 0, tentativas_falhas = 0, bloqueado_ate = NULL
+                WHERE id = ?`).run(hashSenha(senha), u.id);
+    contas.consumir(v.tokenId, u.id);
+    db.prepare('DELETE FROM sessoes WHERE usuario_id = ?').run(u.id);
+    if (tipo === 'convite') {
+      auth.auditar(req, 'conta_ativada', { usuario: u });
+      auth.criarSessao(req, res, u);
+      return res.redirect(303, '/'); // segue para o termo de confidencialidade
+    }
+    auth.auditar(req, 'senha_redefinida', { usuario: u });
+    contas.avisarSenhaAlterada(u);
+    res.redirect(303, '/login?redefinida=1');
+  });
+}
+telaLink('convite', 'Ativar acesso');
+telaLink('redefinicao', 'Criar senha nova');
 
 r.post('/sair', (req, res) => {
   if (req.usuario) auth.auditar(req, 'logout');
@@ -146,6 +202,7 @@ r.post('/conta/senha', auth.exigirLogin, (req, res) => {
   // Encerra as outras sessões do usuário
   db.prepare('DELETE FROM sessoes WHERE usuario_id = ?').run(req.usuario.id);
   auth.auditar(req, 'senha_alterada');
+  contas.avisarSenhaAlterada(req.usuario);
   auth.criarSessao(req, res, req.usuario);
   res.redirect('/');
 });

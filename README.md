@@ -11,9 +11,9 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 
 ## Página inicial (site institucional)
 
-A página de apresentação do Neuro Sistema aparece só na instalação do domínio principal (`neurosistema.com.br`), ligada com `NEUROSISTEMA_PAGINA_INICIAL=1`. Nos subdomínios dos municípios essa variável fica vazia e o endereço abre direto no login.
-- O formulário **Solicitar demonstração** grava os pedidos com os contatos criptografados. Eles aparecem em **Administração → Pedidos de demonstração** na instalação do domínio principal.
-- Com `NEUROSISTEMA_SMTP_USUARIO` e `NEUROSISTEMA_SMTP_SENHA` (ex.: a conta `contato@neurosistema.com.br` da Hostinger), cada pedido também chega por e-mail. O botão "Responder" do e-mail vai direto para quem pediu. Se o envio falhar, o pedido continua guardado no sistema.
+O site `neurosistema.com.br` é a página de apresentação, publicada como site comum (HTML + `enviar.php`), separada do sistema. O formulário **Solicitar demonstração** envia cada pedido para `contato@neurosistema.com.br`.
+
+Os municípios usam o sistema nos próprios subdomínios, onde o endereço abre direto no login. O sistema também traz a página de apresentação (`src/views/site.ejs`), que só aparece com `NEUROSISTEMA_PAGINA_INICIAL=1`: nesse caso, os pedidos ficam em **Administração → Pedidos de demonstração**.
 - Fonte Outfit (licença OFL) e ícones Lucide (licença ISC) ficam hospedados no próprio sistema.
 
 ## Proteção de dados (LGPD)
@@ -27,7 +27,9 @@ A página de apresentação do Neuro Sistema aparece só na instalação do dom�
 | Sigilo profissional | Um registro marcado como sigiloso só é visível ao autor e à mesma especialidade. As demais especialidades veem apenas a data e o tipo. |
 | Auditoria | Login, visualização de ficha, relatório, importação, exportação e acesso negado ficam registrados. Gatilhos no SQLite impedem alterar ou apagar a trilha. |
 | Termo de confidencialidade | Aceite obrigatório no primeiro acesso, com versão e data gravadas. |
-| Autenticação | Senhas com scrypt, troca obrigatória da senha provisória e bloqueio após 5 tentativas. A sessão expira por inatividade e o cookie é HttpOnly/SameSite=Strict. Há token CSRF em todos os formulários e cabeçalhos de segurança (CSP, etc.). |
+| Cadastro de usuários | O administrador cadastra nome, e-mail e perfil e nunca define nem vê a senha de ninguém. A pessoa recebe no e-mail um convite de uso único, válido por 48 horas, e cria a própria senha. Isso também confirma que o e-mail existe e é dela. |
+| Esqueci minha senha | Link de uso único por e-mail, válido por 30 minutos. A tela responde igual para e-mails cadastrados ou não, e cada troca de senha gera um aviso para o dono da conta. |
+| Autenticação | Senhas com scrypt e bloqueio após 5 tentativas. A sessão expira por inatividade e o cookie é HttpOnly/SameSite=Strict. Há token CSRF em todos os formulários e cabeçalhos de segurança (CSP, etc.). |
 | Direitos do titular | Na ficha, o administrador pode exportar os dados em JSON (portabilidade) e anonimizar o cadastro de forma irreversível, mantendo só os dados estatísticos. |
 | Consentimento | Cada criança tem o registro do termo assinado pelo responsável (art. 14). As pendências aparecem no dashboard e na lista. |
 | Planilhas | O arquivo enviado é lido em memória e não fica gravado no servidor. |
@@ -59,17 +61,18 @@ Os planos de entrada da hospedagem de sites não rodam aplicações Node.js. É 
    | `NODE_ENV` | `production` |
    | `TRUST_PROXY` | `1` |
    | `NEUROSISTEMA_TOKEN_INSTALACAO` | uma palavra-chave só sua, usada uma vez no passo 6 |
-   Só na instalação do domínio principal (`neurosistema.com.br`), acrescente:
+
+   Em cada instalação de município, acrescente:
    | Nome | Valor |
    |---|---|
-   | `NEUROSISTEMA_PAGINA_INICIAL` | `1` |
-   | `NEUROSISTEMA_SMTP_USUARIO` | `contato@neurosistema.com.br` |
+   | `NEUROSISTEMA_DADOS` | `/home/<usuário da hospedagem>/neuro-sistema-dados/<nome-do-municipio>`: pasta própria, para que um município nunca use o banco de outro |
+   | `NEUROSISTEMA_ENDERECO` | `https://<municipio>.neurosistema.com.br`, usado nos links dos e-mails |
+   | `NEUROSISTEMA_SMTP_USUARIO` | `nao-responda@neurosistema.com.br` (conta de e-mail só para envio) |
    | `NEUROSISTEMA_SMTP_SENHA` | a senha dessa conta de e-mail |
 
-   Em cada instalação de município, acrescente uma pasta de dados própria, para que um município nunca use o banco de outro:
-   | Nome | Valor |
-   |---|---|
-   | `NEUROSISTEMA_DADOS` | `/home/<usuário da hospedagem>/neuro-sistema-dados/<nome-do-municipio>` |
+   Sem as três últimas, o sistema funciona, mas o convite não sai por e-mail: o administrador recebe o link na tela para repassar.
+
+   **Se ninguém conseguir entrar** (ex.: o único administrador esqueceu a senha e o e-mail não está configurado), o técnico gera uma senha provisória pelo terminal, na pasta do sistema e com as mesmas variáveis: `NODE_ENV=production NEUROSISTEMA_DADOS=<pasta do município> npm run redefinir-senha -- email@prefeitura.gov.br`. Faça isso só a pedido formal da Secretaria; fica registrado na auditoria.
 5. Clique em **Implantar** e espere o build terminar.
 6. Abra o endereço do site. Aparece a tela **Criar o administrador**: informe a palavra-chave do passo 4, o nome, o e-mail e a senha da Secretaria. A tela se bloqueia sozinha depois disso.
 7. Confira se o **SSL (HTTPS)** está ativo em hPanel → Segurança → SSL.
@@ -139,7 +142,7 @@ Testes automatizados: `npm test`.
    `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
    **Guarde a chave em cofre.** Sem ela, os dados cifrados ficam ilegíveis.
 2. Use `NODE_ENV=production`. Isso exige HTTPS, porque o cookie passa a ser `Secure`. Rode o sistema atrás de um proxy reverso (nginx/Caddy) com TLS.
-3. Crie o primeiro administrador com `npm run criar-admin -- "Nome Completo" email@prefeitura.gov.br`.
+3. Crie o primeiro administrador pela tela `/instalacao` ou com `npm run criar-admin -- "Nome Completo" email@prefeitura.gov.br`.
 4. **Não** rode `npm run demo` em produção.
 5. Faça backup diário e cifrado da pasta `data/` e mantenha a chave mestra separada do backup.
 

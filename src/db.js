@@ -165,11 +165,29 @@ CREATE TABLE IF NOT EXISTS solicitacoes (
   atendida INTEGER NOT NULL DEFAULT 0,
   criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Links de uso único enviados por e-mail: convite (ativar a conta) e redefinição de senha.
+-- Só o hash do link é guardado; o link em si existe apenas no e-mail.
+CREATE TABLE IF NOT EXISTS tokens_conta (
+  id INTEGER PRIMARY KEY,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  tipo TEXT NOT NULL CHECK (tipo IN ('convite', 'redefinicao')),
+  token_hash TEXT NOT NULL UNIQUE,
+  expira_em TEXT NOT NULL,
+  usado_em TEXT,
+  criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS ix_tokens_usuario ON tokens_conta(usuario_id, tipo);
 CREATE TRIGGER IF NOT EXISTS auditoria_sem_update BEFORE UPDATE ON auditoria
 BEGIN SELECT RAISE(ABORT, 'A trilha de auditoria não pode ser alterada'); END;
 CREATE TRIGGER IF NOT EXISTS auditoria_sem_delete BEFORE DELETE ON auditoria
 BEGIN SELECT RAISE(ABORT, 'A trilha de auditoria não pode ser apagada'); END;
 `);
+
+// Usuários convidados por e-mail só entram depois de ativar a conta pelo link (convite_pendente = 1).
+// Usuários anteriores a esta versão continuam como estão.
+if (!db.prepare('PRAGMA table_info(usuarios)').all().some((c) => c.name === 'convite_pendente')) {
+  db.exec('ALTER TABLE usuarios ADD COLUMN convite_pendente INTEGER NOT NULL DEFAULT 0');
+}
 
 // Troca de nome (Meu TEA → Neuro Sistema): códigos antigos MT-00001 passam a NS-00001
 db.exec(`UPDATE criancas SET codigo = 'NS-' || substr(codigo, 4) WHERE codigo LIKE 'MT-%'`);

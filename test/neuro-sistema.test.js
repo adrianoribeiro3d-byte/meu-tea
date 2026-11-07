@@ -263,3 +263,94 @@ test('nos subdomínios dos municípios o endereço abre direto no login', async 
     config.paginaInicial = true;
   }
 });
+
+test('convite por e-mail: o profissional ativa o acesso e cria a própria senha', async () => {
+  const enviados = [];
+  email.definirTransporte({ sendMail: async (m) => { enviados.push(m); return {}; } });
+  config.endereco = 'https://municipio.exemplo.gov.br';
+  try {
+    criarUsuario('admconvite@t', 'admin');
+    const adm = await entrar('admconvite@t');
+    let r = await adm.post('/usuarios', { _csrf: adm.csrf, nome: 'Paula Fono', email: 'paula@prefeitura.gov.br', perfil: 'fonoaudiologo' });
+    let html = await r.text();
+    assert.strictEqual(r.status, 200);
+    assert.ok(html.includes('Convite') && html.includes('paula@prefeitura.gov.br'), 'admin vê a confirmação do envio');
+    assert.strictEqual(enviados.length, 1);
+    assert.strictEqual(enviados[0].to, 'paula@prefeitura.gov.br');
+    const link = enviados[0].text.match(/https:\/\/municipio\.exemplo\.gov\.br(\/conta\/ativar\/[0-9a-f]{64})/);
+    assert.ok(link, 'o link usa o endereço configurado, não o cabeçalho Host');
+    assert.ok(!html.includes(link[1]), 'o administrador não vê o link quando o e-mail é enviado');
+    const u = db.prepare(`SELECT * FROM usuarios WHERE email = 'paula@prefeitura.gov.br'`).get();
+    assert.strictEqual(u.convite_pendente, 1);
+    assert.ok(!db.prepare('SELECT 1 FROM tokens_conta WHERE token_hash = ?').get(link[1].split('/').pop()), 'o banco guarda só o hash do link');
+
+    // Antes de ativar, não há senha que funcione
+    r = await fetch(base + '/login', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'email=paula@prefeitura.gov.br&senha=!' });
+    assert.strictEqual(r.status, 401);
+
+    const ativar = (dados) => fetch(base + link[1], { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
+    assert.strictEqual((await fetch(base + link[1])).status, 200);
+    assert.strictEqual((await ativar({ senha: 'curta', confirmacao: 'curta' })).status, 400, 'política de senha vale na ativação');
+    r = await ativar({ senha: 'SenhaDaPaula123', confirmacao: 'SenhaDaPaula123' });
+    assert.strictEqual(r.status, 303);
+    assert.ok(r.headers.get('set-cookie'), 'ativação já abre a sessão (segue para o termo)');
+    assert.strictEqual(db.prepare('SELECT convite_pendente FROM usuarios WHERE id = ?').get(u.id).convite_pendente, 0);
+    assert.strictEqual((await ativar({ senha: 'OutraSenha123', confirmacao: 'OutraSenha123' })).status, 410, 'link de uso único');
+    r = await fetch(base + '/login', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'email=paula@prefeitura.gov.br&senha=SenhaDaPaula123' });
+    assert.strictEqual(r.status, 302, 'entra com a senha que ela mesma criou');
+    const acoes = db.prepare('SELECT acao FROM auditoria WHERE entidade_id = ? OR usuario_id = ?').all(u.id, u.id).map((a) => a.acao);
+    assert.ok(acoes.includes('convite_enviado') && acoes.includes('conta_ativada'));
+
+    // Convite vencido não ativa
+    await adm.post('/usuarios', { _csrf: adm.csrf, nome: 'Rui Psico', email: 'rui@prefeitura.gov.br', perfil: 'psicologo' });
+    const linkRui = enviados.at(-1).text.match(/\/conta\/ativar\/[0-9a-f]{64}/)[0];
+    db.prepare(`UPDATE tokens_conta SET expira_em = datetime('now', '-1 minute') WHERE usuario_id = (SELECT id FROM usuarios WHERE email = 'rui@prefeitura.gov.br')`).run();
+    assert.strictEqual((await fetch(base + linkRui)).status, 410);
+    html = await (await adm.get('/usuarios')).text();
+    assert.ok(html.includes('convite expirado') && html.includes('Reenviar convite'));
+  } finally {
+    email.definirTransporte(null);
+    config.endereco = '';
+  }
+});
+
+test('sem e-mail configurado, o administrador recebe o link para repassar', async () => {
+  criarUsuario('admsememail@t', 'admin');
+  const adm = await entrar('admsememail@t');
+  const r = await adm.post('/usuarios', { _csrf: adm.csrf, nome: 'Ana Nutri', email: 'ana@prefeitura.gov.br', perfil: 'nutricionista' });
+  const html = await r.text();
+  assert.ok(/\/conta\/ativar\/[0-9a-f]{64}/.test(html), 'link exibido uma única vez');
+  assert.ok(!/Senha provisória/i.test(html), 'não existe mais senha provisória definida pelo administrador');
+});
+
+test('esqueci minha senha: link de uso único, sem revelar quem tem cadastro', async () => {
+  const enviados = [];
+  email.definirTransporte({ sendMail: async (m) => { enviados.push(m); return {}; } });
+  config.endereco = 'https://municipio.exemplo.gov.br';
+  try {
+    criarUsuario('esqueceu@prefeitura.gov.br', 'psicologo');
+    const sessaoAntiga = await entrar('esqueceu@prefeitura.gov.br');
+    const pedir = (e) => fetch(base + '/esqueci', { method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ email: e }) }).then((x) => x.text());
+    const existe = await pedir('esqueceu@prefeitura.gov.br');
+    const naoExiste = await pedir('ninguem@prefeitura.gov.br');
+    assert.strictEqual(existe, naoExiste, 'mesma resposta para e-mail cadastrado ou não');
+    await new Promise((ok) => setImmediate(ok));
+    assert.strictEqual(enviados.length, 1, 'só o e-mail cadastrado recebe o link');
+    await pedir('esqueceu@prefeitura.gov.br');
+    assert.strictEqual(enviados.length, 1, 'não reenvia em sequência (evita bombardear a caixa de alguém)');
+    const link = enviados[0].text.match(/\/conta\/redefinir\/[0-9a-f]{64}/)[0];
+    const redefinir = (dados) => fetch(base + link, { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
+    let r = await redefinir({ senha: 'NovaSenha2026', confirmacao: 'NovaSenha2026' });
+    assert.strictEqual(r.status, 303);
+    assert.strictEqual(r.headers.get('location'), '/login?redefinida=1');
+    assert.strictEqual((await sessaoAntiga.get('/conta/senha')).headers.get('location'), '/login', 'sessões abertas antes da troca são encerradas');
+    assert.strictEqual((await redefinir({ senha: 'OutraSenha2026', confirmacao: 'OutraSenha2026' })).status, 410, 'link de uso único');
+    assert.ok(enviados.some((m) => /foi alterada/.test(m.subject)), 'avisa o dono da conta que a senha mudou');
+    r = await fetch(base + '/login', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'email=esqueceu@prefeitura.gov.br&senha=NovaSenha2026' });
+    assert.strictEqual(r.status, 302);
+    assert.strictEqual((await fetch(base + '/conta/redefinir/abc')).status, 410, 'link malformado');
+  } finally {
+    email.definirTransporte(null);
+    config.endereco = '';
+  }
+});

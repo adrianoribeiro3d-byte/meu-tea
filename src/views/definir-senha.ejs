@@ -1,0 +1,28 @@
+<%- include('partials/cabeca', { titulo: titulo }) %>
+<body>
+<main class="centro">
+  <div class="caixa-login" style="max-width:480px">
+    <div class="marca"><%- include('partials/logo') %></div>
+    <div class="cartao">
+      <h1><%= titulo %></h1>
+      <% if (!valido) { %>
+        <div class="aviso erro" role="alert">Este link não é válido. Ele pode ter vencido, já ter sido usado ou ter sido substituído por um link mais novo.</div>
+        <p class="sub"><%= tipo === 'convite' ? 'Peça ao administrador do sistema na Secretaria para reenviar o convite.' : 'Peça um novo link de redefinição.' %></p>
+        <% if (tipo === 'redefinicao') { %><p><a href="/esqueci">Pedir um novo link</a></p><% } %>
+        <p><a href="/login">Ir para o login</a></p>
+      <% } else { %>
+        <p class="sub"><%= tipo === 'convite' ? 'Olá, ' + nome + '. Crie a sua senha para ativar o acesso ao Neuro Sistema.' : 'Olá, ' + nome + '. Crie uma senha nova para o seu acesso.' %></p>
+        <% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+        <form method="post">
+          <input type="text" name="usuario" value="<%= email %>" autocomplete="username" hidden readonly>
+          <div class="campo"><label for="senha">Nova senha</label><input type="password" id="senha" name="senha" autocomplete="new-password" minlength="10" required autofocus>
+            <div class="ajuda">Mínimo de 10 caracteres, com letras e números. Não reutilize senhas de outros serviços.</div></div>
+          <div class="campo"><label for="confirmacao">Confirme a senha</label><input type="password" id="confirmacao" name="confirmacao" autocomplete="new-password" required></div>
+          <button type="submit" class="primario" style="width:100%;justify-content:center"><%= tipo === 'convite' ? 'Ativar meu acesso' : 'Salvar nova senha' %></button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+</main>
+</body>
+</html>

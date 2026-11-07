@@ -65,7 +65,10 @@ module.exports = {
   // Página de apresentação (site institucional) no endereço principal. Ligue só na instalação do
   // domínio principal (neurosistema.com.br); nos subdomínios dos municípios o endereço abre no login.
   paginaInicial: variavel('PAGINA_INICIAL') === '1',
-  // Conta de e-mail que avisa cada pedido de demonstração (Hostinger: smtp.hostinger.com, porta 465)
+  // Endereço público desta instalação (ex.: https://dirceuarcoverde.neurosistema.com.br), usado nos links
+  // de convite e de redefinição de senha enviados por e-mail. Nunca é tirado do cabeçalho da requisição.
+  endereco: (variavel('ENDERECO') || '').trim().replace(/\/+$/, ''),
+  // Conta de e-mail que envia convites, redefinições de senha e avisos (Hostinger: smtp.hostinger.com, porta 465)
   smtp: {
     host: variavel('SMTP_HOST') || 'smtp.hostinger.com',
     porta: Number(variavel('SMTP_PORTA')) || 465,
