@@ -165,6 +165,19 @@ CREATE TABLE IF NOT EXISTS solicitacoes (
   atendida INTEGER NOT NULL DEFAULT 0,
   criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
+-- Crachás emitidos: guarda só o necessário para o QR de verificação (nunca a foto).
+-- Um crachá novo da mesma criança substitui os anteriores.
+CREATE TABLE IF NOT EXISTS crachas (
+  id INTEGER PRIMARY KEY,
+  crianca_id INTEGER NOT NULL REFERENCES criancas(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  nome_cifrado TEXT NOT NULL,
+  emitido_por INTEGER REFERENCES usuarios(id),
+  emitido_em TEXT NOT NULL DEFAULT (datetime('now')),
+  substituido_em TEXT
+);
+CREATE INDEX IF NOT EXISTS ix_crachas_crianca ON crachas(crianca_id);
+
 -- Links de uso único enviados por e-mail: convite (ativar a conta) e redefinição de senha.
 -- Só o hash do link é guardado; o link em si existe apenas no e-mail.
 CREATE TABLE IF NOT EXISTS tokens_conta (

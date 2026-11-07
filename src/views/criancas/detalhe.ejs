@@ -10,7 +10,8 @@
   <div class="acoes">
     <% if (podeRegistrar) { %><a class="botao primario" href="/criancas/<%= c.id %>/acompanhamentos/novo">Registrar acompanhamento</a><% } %>
     <a class="botao" href="/criancas/<%= c.id %>/relatorio">Relatório</a>
-    <% if (pode('editarCriancas') && !c.anonimizada) { %><a class="botao" href="/criancas/<%= c.id %>/editar">Editar cadastro</a><% } %>
+    <% if (pode('editarCriancas') && !c.anonimizada) { %><a class="botao" href="/criancas/<%= c.id %>/editar">Editar cadastro</a>
+    <a class="botao" href="/criancas/<%= c.id %>/cracha">Crachá</a><% } %>
   </div>
 </div>
 

@@ -1,0 +1,39 @@
+<%- include('../partials/topo', { titulo: 'Crachá ' + c.codigo }) %>
+<div class="cabecalho"><div>
+  <p class="muted pequeno" style="margin:0"><a href="/criancas/<%= c.id %>">← <%= c.nome %></a> · <span class="num"><%= c.codigo %></span></p>
+  <h1>Crachá de identificação</h1>
+  <p class="sub">Gera um PDF no tamanho de cartão de PVC (5,4 × 8,6 cm), com frente e verso, pronto para a gráfica.</p>
+</div></div>
+<% if (erro) { %><div class="aviso erro" role="alert"><%= erro %></div><% } %>
+<% if (ultima) { %><div class="aviso info pequeno">Já existe um crachá emitido em <%= fmtDataHora(ultima.emitido_em) %>. Ao gerar um novo, o QR code do anterior passa a aparecer como <strong>substituído</strong>.</div><% } %>
+<form method="post" action="/criancas/<%= c.id %>/cracha" enctype="multipart/form-data" class="cartao">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <fieldset><legend>Frente</legend>
+    <div class="grade grade-3">
+      <div class="campo"><label for="foto">Foto da criança</label><input type="file" id="foto" name="foto" accept="image/jpeg,image/png">
+        <div class="ajuda">JPG ou PNG, de frente, até 8 MB. A foto é usada só para montar o PDF e <strong>não fica guardada</strong> no sistema. Sem foto, aparecem as iniciais.</div></div>
+      <div class="campo"><label for="nome_cracha">Nome na frente</label><input type="text" id="nome_cracha" name="nome_cracha" value="<%= form.nome_cracha %>" maxlength="40" required>
+        <div class="ajuda">O nome completo vai no verso.</div></div>
+      <div class="campo"><label>Destaque</label>
+        <label class="check"><input type="checkbox" name="mostrar_condicao" value="1" <%= form.mostrar_condicao ? 'checked' : '' %>> Condição:</label>
+        <input type="text" name="condicao" value="<%= form.condicao %>" maxlength="40" aria-label="Condição impressa no crachá">
+        <label class="check" style="margin-top:8px"><input type="checkbox" name="mostrar_cid" value="1" <%= form.mostrar_cid ? 'checked' : '' %>> CID:</label>
+        <input type="text" name="cid" value="<%= form.cid %>" maxlength="20" aria-label="CID impresso no crachá" placeholder="ex.: F84.0">
+        <div class="ajuda">O CID é dado de saúde: imprima só se a família pedir.</div></div>
+    </div>
+  </fieldset>
+  <fieldset><legend>Verso: contatos de emergência</legend>
+    <div class="grade grade-2">
+      <div class="campo"><label for="contato1_nome">Contato 1</label><input type="text" id="contato1_nome" name="contato1_nome" value="<%= form.contato1_nome %>" maxlength="50" placeholder="ex.: Maria (mãe)"></div>
+      <div class="campo"><label for="contato1_tel">Telefone 1</label><input type="text" id="contato1_tel" name="contato1_tel" value="<%= form.contato1_tel %>" maxlength="25" inputmode="tel" required></div>
+      <div class="campo"><label for="contato2_nome">Contato 2 (opcional)</label><input type="text" id="contato2_nome" name="contato2_nome" value="<%= form.contato2_nome %>" maxlength="50"></div>
+      <div class="campo"><label for="contato2_tel">Telefone 2</label><input type="text" id="contato2_tel" name="contato2_tel" value="<%= form.contato2_tel %>" maxlength="25" inputmode="tel"></div>
+    </div>
+    <p class="ajuda" style="margin:0">O verso também traz o nome completo, a data de nascimento e um QR code. Quem ler o QR vê apenas se o crachá é válido, com o nome e o código: nenhuma informação de saúde.</p>
+  </fieldset>
+  <fieldset><legend>Autorização (LGPD)</legend>
+    <label class="check"><input type="checkbox" name="autorizacao" value="1" required> O responsável legal pediu o crachá e autorizou os dados que serão impressos nele.</label>
+  </fieldset>
+  <button type="submit" class="primario">Gerar crachá em PDF</button>
+</form>
+<%- include('../partials/rodape') %>

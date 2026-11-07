@@ -133,6 +133,7 @@ function anonimizar(id) {
   db.prepare(`UPDATE acompanhamentos SET objetivos_cifrado = NULL, descricao_cifrado = NULL,
     encaminhamentos_cifrado = NULL WHERE crianca_id = ?`).run(id);
   db.prepare('DELETE FROM vinculos WHERE crianca_id = ?').run(id);
+  db.prepare('DELETE FROM crachas WHERE crianca_id = ?').run(id); // o QR dos crachás deixa de identificar a criança
 }
 
 module.exports = { dataValida, idadeDe, validar, inserir, atualizar, buscarPorIdentidade, paraExibicao, obter, anonimizar };

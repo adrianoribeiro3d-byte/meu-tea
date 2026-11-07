@@ -2,9 +2,13 @@ const express = require('express');
 const db = require('../db');
 const auth = require('../auth');
 const criancas = require('../criancas');
+const multer = require('multer');
 const { gerarRelatorioPdf } = require('../relatorioPdf');
+const { gerarCrachaPdf } = require('../crachaPdf');
+const crachas = require('../crachas');
+const config = require('../config');
 const { cifrar, decifrar, normalizar } = require('../seguranca');
-const { ESPECIALIDADES, TIPOS_ATENDIMENTO, EVOLUCAO, LAUDO, ehProfissional } = require('../dominio');
+const { ESPECIALIDADES, TIPOS_ATENDIMENTO, EVOLUCAO, LAUDO, ehProfissional, CONDICAO_CURTA } = require('../dominio');
 
 const r = express.Router();
 r.use(auth.exigir('verCriancas'));
@@ -216,6 +220,70 @@ r.get('/:id/relatorio.pdf', auth.exigir('relatorios'), (req, res) => {
   res.set('Content-Type', 'application/pdf');
   res.set('Content-Disposition', `attachment; filename="relatorio-${dados.c.codigo}-${new Date().toISOString().slice(0, 10)}.pdf"`);
   gerarRelatorioPdf({ ...dados, usuario: req.usuario, adm: !ehProfissional(req.usuario.perfil) }, res);
+});
+
+// ---------- Crachá de identificação (PDF no tamanho de cartão de PVC) ----------
+// A foto é lida em memória só para montar o PDF e não fica gravada no servidor.
+const uploadFoto = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024, files: 1, fields: 20 },
+});
+const ehImagem = (b) => b && b.length > 8 && ((b[0] === 0xff && b[1] === 0xd8) || b.slice(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])));
+const destaquePadrao = (c) => c.condicoes.map((x) => CONDICAO_CURTA[x] || x).join(' · ');
+const t = (v, max) => String(v || '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
+
+function formCracha(c) {
+  return {
+    nome_cracha: crachas.nomeCurto(c.nome), condicao: destaquePadrao(c), mostrar_condicao: '1', cid: c.cid || '', mostrar_cid: '',
+    contato1_nome: c.responsavel ? `${c.responsavel} (responsável)` : '', contato1_tel: c.telefone || '', contato2_nome: '', contato2_tel: '',
+  };
+}
+
+r.get('/:id/cracha', auth.exigir('editarCriancas'), (req, res) => {
+  const c = req.crianca;
+  if (c.anonimizada) return res.redirect(`/criancas/${c.id}`);
+  res.render('criancas/cracha', { c, form: formCracha(c), erro: null, ultima: crachas.ultimaEmissao(c.id) });
+});
+
+r.post('/:id/cracha', auth.exigir('editarCriancas'), (req, res, next) => {
+  const c = req.crianca;
+  if (c.anonimizada) return res.redirect(`/criancas/${c.id}`);
+  uploadFoto.single('foto')(req, res, (err) => {
+    try {
+      // O token CSRF chega no corpo multipart, então a verificação acontece após o upload
+      if (req.body?._csrf !== req.csrf) return res.status(403).render('erro', { titulo: 'Requisição recusada', mensagem: 'Token de segurança inválido.' });
+      const b = req.body;
+      const form = {
+        nome_cracha: t(b.nome_cracha, 40), condicao: t(b.condicao, 40), mostrar_condicao: b.mostrar_condicao === '1' ? '1' : '',
+        cid: t(b.cid, 20), mostrar_cid: b.mostrar_cid === '1' ? '1' : '',
+        contato1_nome: t(b.contato1_nome, 50), contato1_tel: t(b.contato1_tel, 25), contato2_nome: t(b.contato2_nome, 50), contato2_tel: t(b.contato2_tel, 25),
+      };
+      const falha = (erro) => res.status(400).render('criancas/cracha', { c, form, erro, ultima: crachas.ultimaEmissao(c.id) });
+      if (err) return falha(err.code === 'LIMIT_FILE_SIZE' ? 'A foto deve ter no máximo 8 MB.' : 'Falha no envio da foto.');
+      if (req.file && !ehImagem(req.file.buffer)) return falha('A foto deve ser um arquivo JPG ou PNG.');
+      if (form.nome_cracha.length < 2) return falha('Informe o nome que vai na frente do crachá.');
+      if (!form.contato1_tel) return falha('Informe ao menos um telefone de emergência.');
+      if (b.autorizacao !== '1') return falha('Confirme que o responsável pediu o crachá e autorizou os dados impressos.');
+
+      const destaque = [form.mostrar_condicao && form.condicao, form.mostrar_cid && form.cid && `CID ${form.cid}`].filter(Boolean).join(' · ');
+      const bruto = crachas.registrar(c.id, form.nome_cracha, req.usuario.id);
+      const base = config.endereco || `${req.protocol}://${req.get('host')}`;
+      auth.auditar(req, 'emitiu_cracha', { entidade: 'crianca', entidadeId: c.id, detalhes: { condicao: !!form.mostrar_condicao, cid: !!(form.mostrar_cid && form.cid), foto: !!req.file } });
+      res.set('Content-Type', 'application/pdf');
+      res.set('Content-Disposition', `attachment; filename="cracha-${c.codigo}.pdf"`);
+      gerarCrachaPdf({
+        nomeCracha: form.nome_cracha,
+        nomeCompleto: c.nome,
+        nascimento: c.nascimento ? c.nascimento.split('-').reverse().join('/') : '—',
+        destaque,
+        contatos: [[form.contato1_nome, form.contato1_tel], [form.contato2_nome, form.contato2_tel]].filter(([, tel]) => tel).map(([nome, telefone]) => ({ nome, telefone })),
+        codigo: c.codigo,
+        emitidoEm: new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+        foto: req.file?.buffer,
+        urlVerificacao: `${base}/v/${bruto}`,
+      }, res);
+    } catch (e) { next(e); }
+  });
 });
 
 // ---------- Direitos do titular (LGPD art. 18) ----------

@@ -354,3 +354,50 @@ test('esqueci minha senha: link de uso único, sem revelar quem tem cadastro', a
     config.endereco = '';
   }
 });
+
+test('crachá em PDF: só a Secretaria emite, com autorização, e o QR não expõe dados de saúde', async () => {
+  const crachas = require('../src/crachas');
+  const id = criancas.inserir(dadosCrianca('Luan Assis Alves de Lima', { cid: 'F84.0', responsavel: 'Maria de Lima', telefone: '(86) 99999-9999' }));
+  criarUsuario('admcracha@t', 'admin');
+  const adm = await entrar('admcracha@t');
+  const pagina = await (await adm.get(`/criancas/${id}/cracha`)).text();
+  assert.ok(pagina.includes('Luan A. A. de Lima'), 'nome curto sugerido');
+  assert.ok(pagina.includes('(86) 99999-9999'), 'telefone do responsável sugerido');
+
+  const cookie = (await fetch(base + '/login', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ email: 'admcracha@t', senha: SENHA }) })).headers.get('set-cookie').split(';')[0];
+  const html = await (await fetch(base + `/criancas/${id}/cracha`, { headers: { cookie } })).text();
+  const csrf = html.match(/name="_csrf" value="([^"]+)"/)[1];
+  const enviar = (extra = {}, foto) => {
+    const fd = new FormData();
+    Object.entries({ _csrf: csrf, nome_cracha: 'Luan A. de Lima', mostrar_condicao: '1', condicao: 'TEA', mostrar_cid: '1', cid: 'F84.0', contato1_nome: 'Maria (mãe)', contato1_tel: '(86) 99999-9999', autorizacao: '1', ...extra })
+      .forEach(([k, v]) => fd.append(k, v));
+    if (foto) fd.append('foto', new Blob([foto]), 'foto.jpg');
+    return fetch(base + `/criancas/${id}/cracha`, { method: 'POST', headers: { cookie }, body: fd });
+  };
+  assert.strictEqual((await enviar({ autorizacao: '' })).status, 400, 'sem autorização do responsável não gera');
+  assert.strictEqual((await enviar({}, Buffer.from('não é imagem'))).status, 400, 'só aceita JPG ou PNG');
+  let r = await enviar({}, fs.readFileSync(path.join(__dirname, '..', 'public', 'img', 'site', 'crianca.jpg')));
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.headers.get('content-type'), 'application/pdf');
+  const pdf = Buffer.from(await r.arrayBuffer());
+  assert.strictEqual(pdf.subarray(0, 4).toString(), '%PDF');
+  assert.ok(db.prepare(`SELECT 1 FROM auditoria WHERE acao = 'emitiu_cracha' AND entidade_id = ?`).get(id));
+  assert.ok(!fs.readdirSync(tmp).some((f) => /\.(jpe?g|png)$/i.test(f)), 'a foto não é gravada');
+
+  // Profissional não emite crachá
+  criarUsuario('fonocracha@t', 'fonoaudiologo');
+  db.prepare('INSERT INTO vinculos (crianca_id, usuario_id) VALUES (?, ?)').run(id, db.prepare(`SELECT id FROM usuarios WHERE email = 'fonocracha@t'`).get().id);
+  const fono = await entrar('fonocracha@t');
+  assert.strictEqual((await fono.get(`/criancas/${id}/cracha`)).status, 403);
+
+  // Verificação pelo QR: válido → substituído quando sai uma via nova; sem dados de saúde
+  const t1 = crachas.registrar(id, 'Luan A. de Lima', null);
+  let v = await (await fetch(base + `/v/${t1}`)).text();
+  assert.ok(v.includes('Crachá válido') && v.includes('Luan A. de Lima'));
+  assert.ok(!/F84|TEA|99999/.test(v), 'a página de verificação não mostra CID, condição nem contatos');
+  crachas.registrar(id, 'Luan A. de Lima', null);
+  assert.ok((await (await fetch(base + `/v/${t1}`)).text()).includes('substituído'));
+  assert.strictEqual((await fetch(base + '/v/naoexiste')).status, 404);
+  criancas.anonimizar(id);
+  assert.strictEqual((await fetch(base + `/v/${t1}`)).status, 404, 'anonimizar apaga o vínculo do QR com a criança');
+});

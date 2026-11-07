@@ -7,6 +7,7 @@ const config = require('../config');
 const { versaoTermo, tokenInstalacao } = config;
 const email = require('../email');
 const contas = require('../contas');
+const crachas = require('../crachas');
 
 const r = express.Router();
 const MAX_TENTATIVAS = 5;
@@ -186,6 +187,12 @@ r.post('/sair', (req, res) => {
 });
 
 r.get('/privacidade', (req, res) => res.render('privacidade'));
+
+// Verificação pública do crachá (QR code do verso): só diz se o crachá é válido, sem dados de saúde
+r.get('/v/:token', (req, res) => {
+  const v = crachas.verificar(req.params.token);
+  res.status(v ? 200 : 404).render('verificar-cracha', { v });
+});
 
 r.get('/conta/senha', auth.exigirLogin, (req, res) => res.render('senha', { erro: null, ok: false }));
 

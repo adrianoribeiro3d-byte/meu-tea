@@ -1,0 +1,25 @@
+<%- include('partials/cabeca', { titulo: 'Verificação de crachá' }) %>
+<body>
+<main class="centro">
+  <div class="caixa-login" style="max-width:440px">
+    <div class="marca"><%- include('partials/logo') %></div>
+    <div class="cartao" style="text-align:center">
+      <h1>Verificação de crachá</h1>
+      <% if (!v) { %>
+        <div class="aviso erro" role="alert">Crachá não encontrado. Ele pode ter sido cancelado ou não ter sido emitido por este sistema.</div>
+      <% } else if (v.situacao === 'valido') { %>
+        <div class="aviso ok" role="status"><strong>Crachá válido</strong></div>
+        <p style="font-size:1.25rem;font-weight:700;margin:12px 0 4px"><%= v.nome %></p>
+        <p class="sub">Código <span class="num"><%= v.codigo %></span> · emitido em <%= fmtData(v.emitidoEm) %></p>
+      <% } else if (v.situacao === 'substituido') { %>
+        <div class="aviso atencao" role="status">Este crachá foi <strong>substituído</strong> por uma via mais nova e não vale mais.</div>
+        <p class="sub">Código <span class="num"><%= v.codigo %></span></p>
+      <% } else { %>
+        <div class="aviso erro" role="status">Este crachá foi <strong>cancelado</strong>.</div>
+      <% } %>
+      <p class="pequeno muted" style="margin-top:16px">Em caso de necessidade, ligue para os contatos de emergência impressos no verso do crachá.</p>
+    </div>
+  </div>
+</main>
+</body>
+</html>

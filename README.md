@@ -7,6 +7,7 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 - **Importação das planilhas** da Secretaria (.xlsx ou .csv). Os nomes de coluna são reconhecidos automaticamente e há uma prévia com validação antes de gravar.
 - **Ficha da criança** com a equipe multiprofissional vinculada: neuropedagogo, psicólogo, fonoaudiólogo, nutricionista, terapeuta ocupacional, psicopedagogo, professor de AEE etc.
 - **Registro de acompanhamento** por profissional, com evolução (avançou / manteve / regrediu) e opção de sigilo.
+- **Crachá de identificação** da criança em PDF, no tamanho de cartão de PVC (frente e verso), gerado pela Secretaria com autorização do responsável. A foto não fica guardada no sistema. O CID só é impresso se marcado. O QR code do verso abre uma página que confirma se o crachá é válido, sem nenhum dado de saúde.
 - **Relatório com o histórico de acompanhamento**, filtrável por período e especialidade, com o botão **Baixar PDF**. O arquivo sai com marca d'água “CONFIDENCIAL”, numeração de páginas e identificação de quem o emitiu. A exportação fica registrada na auditoria.
 
 ## Página inicial (site institucional)
