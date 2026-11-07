@@ -11,6 +11,7 @@ process.env.NEUROSISTEMA_DB = path.join(tmp, 'teste.db');
 process.env.NEUROSISTEMA_MASTER_KEY = '11'.repeat(32);
 process.env.LGPD_MIN_GRUPO = '3';
 process.env.NEUROSISTEMA_TOKEN_INSTALACAO = 'palavra-secreta-teste';
+process.env.NEUROSISTEMA_PAGINA_INICIAL = '1';
 
 const db = require('../src/db');
 const seg = require('../src/seguranca');
@@ -18,6 +19,8 @@ const criancas = require('../src/criancas');
 const estatisticas = require('../src/estatisticas');
 const importador = require('../src/importador');
 const app = require('../src/server');
+const config = require('../src/config');
+const email = require('../src/email');
 
 let servidor, base;
 const SENHA = 'senhaTeste123';
@@ -213,8 +216,25 @@ test('página institucional e pedido de demonstração', async () => {
   assert.ok(html.includes('Gestão e monitoramento do desenvolvimento') && !html.includes('href="/login"'), 'a página não leva ao login: cada município tem seu subdomínio');
   const enviar = (dados) => fetch(base + '/demonstracao', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(dados) });
   const dados = { nome: 'Maria Contato', instituicao: 'Secretaria de Educação', email: 'maria@prefeitura.gov.br', telefone: '(00) 90000-0000', consentimento: 'sim' };
+  const enviados = [];
+  email.definirTransporte({ sendMail: async (m) => { enviados.push(m); return {}; } });
+  config.smtp.destino = 'contato@neurosistema.com.br';
   assert.strictEqual((await enviar({ ...dados, consentimento: '' })).status, 400, 'sem autorização não envia');
+  assert.strictEqual(enviados.length, 0);
+  r = await enviar({ ...dados, instituicao: 'Secretaria de Educação\r\nBcc: x@y.z' });
+  assert.strictEqual(r.status, 303);
+  assert.strictEqual(enviados.length, 1, 'pedido avisado por e-mail');
+  assert.strictEqual(enviados[0].to, 'contato@neurosistema.com.br');
+  assert.strictEqual(enviados[0].replyTo.address, 'maria@prefeitura.gov.br', 'responder vai para quem pediu');
+  assert.ok(!/[\r\n]/.test(enviados[0].subject), 'assunto sem quebra de linha (sem injeção de cabeçalho)');
+  assert.ok(enviados[0].text.includes('(00) 90000-0000'));
+  email.definirTransporte({ sendMail: async () => { throw new Error('SMTP fora do ar'); } });
+  const erroOriginal = console.error; console.error = () => {};
   r = await enviar(dados);
+  await new Promise((ok) => setImmediate(ok));
+  console.error = erroOriginal;
+  assert.strictEqual(r.status, 303, 'falha no e-mail não impede o registro do pedido');
+  email.definirTransporte(null);
   assert.strictEqual(r.status, 303);
   const linha = db.prepare('SELECT * FROM solicitacoes ORDER BY id DESC').get();
   assert.strictEqual(linha.instituicao, 'Secretaria de Educação');
@@ -227,4 +247,19 @@ test('página institucional e pedido de demonstração', async () => {
   assert.ok((await (await adm.get('/solicitacoes')).text()).includes('maria@prefeitura.gov.br'));
   const prof = await entrar('fono@t');
   assert.strictEqual((await prof.get('/solicitacoes')).status, 403);
+});
+
+test('nos subdomínios dos municípios o endereço abre direto no login', async () => {
+  config.paginaInicial = false;
+  try {
+    let r = await fetch(base + '/', { redirect: 'manual' });
+    assert.strictEqual(r.status, 302);
+    assert.strictEqual(r.headers.get('location'), '/login');
+    r = await fetch(base + '/login');
+    assert.ok(!(await r.text()).includes('Voltar ao site'));
+    r = await fetch(base + '/demonstracao', { method: 'POST', redirect: 'manual', headers: { 'content-type': 'application/x-www-form-urlencoded' }, body: 'nome=Fulano&instituicao=Teste&email=a@b.cd&consentimento=sim' });
+    assert.strictEqual(r.status, 404, 'sem página inicial não recebe pedidos');
+  } finally {
+    config.paginaInicial = true;
+  }
 });

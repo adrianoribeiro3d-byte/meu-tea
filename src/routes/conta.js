@@ -3,7 +3,9 @@ const db = require('../db');
 const { conferirSenha, hashSenha, validarSenha, cifrar } = require('../seguranca');
 const auth = require('../auth');
 const crypto = require('crypto');
-const { versaoTermo, tokenInstalacao } = require('../config');
+const config = require('../config');
+const { versaoTermo, tokenInstalacao } = config;
+const email = require('../email');
 
 const r = express.Router();
 const MAX_TENTATIVAS = 5;
@@ -22,13 +24,15 @@ function limiteIp(ip) {
 const semUsuarios = () => !db.prepare('SELECT 1 FROM usuarios LIMIT 1').get();
 
 // ---------- Página institucional (visitantes) ----------
-// Quem já entrou no sistema segue para o painel; os demais veem a apresentação do produto.
+// Só na instalação do domínio principal (NEUROSISTEMA_PAGINA_INICIAL=1). Quem já entrou segue para o
+// painel; os demais veem a apresentação do produto. Nos subdomínios dos municípios, o endereço abre no login.
 r.get('/', (req, res, next) => {
-  if (req.usuario) return next();
+  if (req.usuario || !config.paginaInicial) return next();
   res.render('site', { enviado: req.query.enviado === '1', erro: null, form: {} });
 });
 
 r.post('/demonstracao', (req, res) => {
+  if (!config.paginaInicial) return res.status(404).render('erro', { titulo: 'Página não encontrada', mensagem: 'O endereço acessado não existe.' });
   const t = (v, max) => String(v || '').trim().slice(0, max);
   const form = {
     nome: t(req.body.nome, 120), cargo: t(req.body.cargo, 80), instituicao: t(req.body.instituicao, 120), municipio: t(req.body.municipio, 80),
@@ -44,6 +48,8 @@ r.post('/demonstracao', (req, res) => {
   db.prepare(`INSERT INTO solicitacoes (nome_cifrado, email_cifrado, telefone_cifrado, cargo, instituicao, municipio, mensagem_cifrada)
               VALUES (?, ?, ?, ?, ?, ?, ?)`)
     .run(cifrar(form.nome), cifrar(form.email), cifrar(form.telefone), form.cargo || null, form.instituicao, form.municipio || null, cifrar(form.mensagem));
+  // O aviso por e-mail não atrasa nem impede o registro do pedido; a falha fica no log, sem dados pessoais.
+  email.avisarPedido(form).catch((e) => console.error('[Neuro Sistema] Falha ao enviar o aviso do pedido de demonstração por e-mail:', e.code || e.message));
   res.redirect(303, '/?enviado=1#demonstracao');
 });
 

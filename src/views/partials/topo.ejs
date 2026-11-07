@@ -24,7 +24,9 @@
         <div class="grupo">Administração</div>
         <a href="/usuarios" class="<%= caminho.startsWith('/usuarios') ? 'ativo' : '' %>">Usuários</a>
         <a href="/auditoria" class="<%= caminho.startsWith('/auditoria') ? 'ativo' : '' %>">Auditoria (LGPD)</a>
-        <a href="/solicitacoes" class="<%= caminho.startsWith('/solicitacoes') ? 'ativo' : '' %>">Pedidos de demonstração</a>
+        <% if (paginaInicial) { %>
+          <a href="/solicitacoes" class="<%= caminho.startsWith('/solicitacoes') ? 'ativo' : '' %>">Pedidos de demonstração</a>
+        <% } %>
       <% } %>
       <div class="grupo">Conta</div>
       <a href="/conta/senha" class="<%= caminho === '/conta/senha' ? 'ativo' : '' %>">Alterar senha</a>

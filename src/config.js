@@ -62,6 +62,17 @@ module.exports = {
   // Ambiente de demonstração: cria dados fictícios automaticamente e exibe aviso em todas as páginas
   demo: variavel('DEMO') === '1',
   demoSenha: variavel('DEMO_SENHA') || 'demo12345678',
+  // Página de apresentação (site institucional) no endereço principal. Ligue só na instalação do
+  // domínio principal (neurosistema.com.br); nos subdomínios dos municípios o endereço abre no login.
+  paginaInicial: variavel('PAGINA_INICIAL') === '1',
+  // Conta de e-mail que avisa cada pedido de demonstração (Hostinger: smtp.hostinger.com, porta 465)
+  smtp: {
+    host: variavel('SMTP_HOST') || 'smtp.hostinger.com',
+    porta: Number(variavel('SMTP_PORTA')) || 465,
+    usuario: variavel('SMTP_USUARIO') || '',
+    senha: variavel('SMTP_SENHA') || '',
+    destino: variavel('EMAIL_PEDIDOS') || '',
+  },
   // Atrás de um proxy/hospedagem (Render, Railway…) use TRUST_PROXY=1 para registrar o IP real
   trustProxy: process.env.TRUST_PROXY ? (/^\d+$/.test(process.env.TRUST_PROXY) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY) : 'loopback',
 };

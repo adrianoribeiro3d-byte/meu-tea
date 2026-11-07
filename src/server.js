@@ -42,6 +42,7 @@ app.use((req, res, next) => {
     fmtDataHora: (iso) => (iso ? `${iso.slice(0, 10).split('-').reverse().join('/')} ${iso.slice(11, 16)}` : '—'),
     fmtNum: (n) => (n == null ? '—' : Number(n).toLocaleString('pt-BR')),
     demo: config.demo,
+    paginaInicial: config.paginaInicial,
     demoSenhaPadrao: config.demoSenha === 'demo12345678',
   });
   next();

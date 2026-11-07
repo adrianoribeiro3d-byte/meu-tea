@@ -11,9 +11,9 @@ Sistema web para a Secretaria de Inclusão acompanhar crianças neurodivergentes
 
 ## Página inicial (site institucional)
 
-Quem acessa o endereço do sistema sem estar logado vê a página de apresentação do Neuro Sistema, com o botão **Entrar** para os profissionais.
-- O formulário **Solicitar demonstração** grava os pedidos com os contatos criptografados.
-- A Secretaria vê os pedidos em **Administração → Pedidos de demonstração**.
+A página de apresentação do Neuro Sistema aparece só na instalação do domínio principal (`neurosistema.com.br`), ligada com `NEUROSISTEMA_PAGINA_INICIAL=1`. Nos subdomínios dos municípios essa variável fica vazia e o endereço abre direto no login.
+- O formulário **Solicitar demonstração** grava os pedidos com os contatos criptografados. Eles aparecem em **Administração → Pedidos de demonstração** na instalação do domínio principal.
+- Com `NEUROSISTEMA_SMTP_USUARIO` e `NEUROSISTEMA_SMTP_SENHA` (ex.: a conta `contato@neurosistema.com.br` da Hostinger), cada pedido também chega por e-mail. O botão "Responder" do e-mail vai direto para quem pediu. Se o envio falhar, o pedido continua guardado no sistema.
 - Fonte Outfit (licença OFL) e ícones Lucide (licença ISC) ficam hospedados no próprio sistema.
 
 ## Proteção de dados (LGPD)
@@ -59,11 +59,22 @@ Os planos de entrada da hospedagem de sites não rodam aplicações Node.js. É 
    | `NODE_ENV` | `production` |
    | `TRUST_PROXY` | `1` |
    | `NEUROSISTEMA_TOKEN_INSTALACAO` | uma palavra-chave só sua, usada uma vez no passo 6 |
+   Só na instalação do domínio principal (`neurosistema.com.br`), acrescente:
+   | Nome | Valor |
+   |---|---|
+   | `NEUROSISTEMA_PAGINA_INICIAL` | `1` |
+   | `NEUROSISTEMA_SMTP_USUARIO` | `contato@neurosistema.com.br` |
+   | `NEUROSISTEMA_SMTP_SENHA` | a senha dessa conta de e-mail |
+
+   Em cada instalação de município, acrescente uma pasta de dados própria, para que um município nunca use o banco de outro:
+   | Nome | Valor |
+   |---|---|
+   | `NEUROSISTEMA_DADOS` | `/home/<usuário da hospedagem>/neuro-sistema-dados/<nome-do-municipio>` |
 5. Clique em **Implantar** e espere o build terminar.
 6. Abra o endereço do site. Aparece a tela **Criar o administrador**: informe a palavra-chave do passo 4, o nome, o e-mail e a senha da Secretaria. A tela se bloqueia sozinha depois disso.
 7. Confira se o **SSL (HTTPS)** está ativo em hPanel → Segurança → SSL.
 
-**Onde ficam os dados.** Em produção, o banco e a chave de criptografia ficam na pasta `neuro-sistema-dados`, na pasta pessoal da hospedagem, fora da pasta do sistema. Assim nada se perde quando a Hostinger reinstala o código.
+**Onde ficam os dados.** Em produção, o banco e a chave de criptografia ficam na pasta `neuro-sistema-dados`, na pasta pessoal da hospedagem, fora da pasta do sistema. Com várias instalações na mesma conta (um subdomínio por município), cada uma precisa da sua `NEUROSISTEMA_DADOS`: sem ela, todas usariam o mesmo banco. Assim nada se perde quando a Hostinger reinstala o código.
 - Faça backup dessa pasta inteira, **incluindo o arquivo `.chave-mestra`**: sem ele, os dados ficam ilegíveis.
 - Não troque nem defina `NEUROSISTEMA_MASTER_KEY` depois que houver dados.
 
